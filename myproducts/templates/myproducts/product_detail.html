@@ -1,0 +1,234 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ product.nombre }} - FG Shop{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_detail.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="container my-4">
+    <!-- Breadcrumbs (visible en todas las pantallas) -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+            {% if product.categoria %}
+                <li class="breadcrumb-item"><a href="{{ product.categoria.get_absolute_url }}">{{ product.categoria.nombre }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ product.nombre }}</li>
+        </ol>
+    </nav>
+
+    <!-- ============================================== -->
+    <!--    INICIO DEL BLOQUE PRINCIPAL (ESTRUCTURA FINAL)    -->
+    <!-- ============================================== -->
+
+    <!-- TÍTULO, MARCA Y SKU (SOLO PARA VISTA MÓVIL) -->
+    <!-- Se muestra arriba de todo en pantallas pequeñas -->
+    <div class="d-lg-none mb-3">
+        {% if product.brand %}
+            <h6 class="text-uppercase"><a href="{{ product.brand.get_absolute_url }}" class="product-brand-link">{{ product.brand.nombre }}</a></h6>
+        {% endif %}
+        <h1 class="h2 fw-bold">{{ product.nombre }}</h1>
+        <p class="text-muted small">SKU: <span id="variant-sku-mobile">{{ product.sku_base }}</span></p>
+    </div>
+
+    <!-- Fila principal con las columnas -->
+    <div class="row">
+
+        <!-- Columna Izquierda: Galería de Imágenes -->
+        <div class="col-lg-7">
+            <div class="gallery-container">
+                <div class="position-relative">
+                    <img id="main-product-image" src="https://via.placeholder.com/800x800.png?text=Cargando..." alt="{{ product.nombre }}" class="img-fluid rounded border mb-3">
+                    <button id="prev-image-btn" class="gallery-nav-btn start-0" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+                    <button id="next-image-btn" class="gallery-nav-btn end-0" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div id="thumbnail-container" class="d-flex flex-wrap gap-2 justify-content-center">
+                    <!-- Las miniaturas se llenan con JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Información del Producto -->
+        <div class="col-lg-5">
+            
+            <!-- TÍTULO, MARCA Y SKU (SOLO PARA VISTA ESCRITORIO) -->
+            <!-- Se oculta en móvil y se muestra aquí en pantallas grandes -->
+            <div class="d-none d-lg-block">
+                {% if product.brand %}
+                    <h6 class="text-uppercase"><a href="{{ product.brand.get_absolute_url }}" class="product-brand-link">{{ product.brand.nombre }}</a></h6>
+                {% endif %}
+                <h1 class="h2 fw-bold">{{ product.nombre }}</h1>
+                <p class="text-muted small">SKU: <span id="variant-sku-desktop">{{ product.sku_base }}</span></p>
+            </div>
+
+            <!-- Vendedor -->
+            {% if product.supplier %}
+            <div class="supplier-info d-flex align-items-center my-3">
+                <span class="text-muted small me-2">Vendido por:</span>
+                <a href="{% url 'myproducts:product_list_by_supplier' product.supplier.pk %}" class="supplier-link d-flex align-items-center">
+                    {% if product.supplier.logo %}
+                    <img src="{{ product.supplier.logo.url }}" alt="{{ product.supplier.nombre_empresa }}" class="supplier-logo">
+                    {% endif %}
+                    <span class="supplier-name">{{ product.supplier.nombre_empresa }}</span>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- El resto de la información del producto se mantiene igual -->
+            <div class="price-section my-3">
+                <span id="variant-price" class="h3 fw-bolder me-2"></span>
+                <span id="variant-base-price" class="text-muted text-decoration-line-through"></span>
+                <span id="variant-discount-badge" class="badge bg-danger"></span>
+            </div>
+            <div id="installments-info" class="installments-box" style="display: none;"></div>
+            <hr>
+            <div id="variant-selectors-container"></div>
+            {% if product.categoria and product.categoria.guia_tallas_pdf %}
+            <div class="my-3">
+                <a href="#" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
+                    <i class="fas fa-ruler-horizontal me-1"></i> Tabla de tallas
+                </a>
+            </div>
+            {% endif %}
+            <hr>
+            <div class="d-flex align-items-center mb-3">
+                <label for="quantity-input" class="form-label me-3 mb-0">Cantidad:</label>
+                <div class="input-group" style="width: 130px;">
+                    <button class="btn btn-outline-secondary" type="button" id="quantity-minus">-</button>
+                    <input type="text" id="quantity-input" class="form-control text-center" value="1" min="1">
+                    <button class="btn btn-outline-secondary" type="button" id="quantity-plus">+</button>
+                </div>
+            </div>
+            <small id="stock-info" class="form-text d-block mb-3"></small>
+            <form id="add-to-cart-form" method="post" action="{% url 'mycart:cart_add' product.id %}">
+                {% csrf_token %}
+                <input type="hidden" id="selected-variant-id" name="variant_id" value="">
+                <input type="hidden" id="form-quantity-input" name="quantity" value="1">
+                <button id="add-to-cart-btn" type="submit" class="btn btn-dark btn-lg w-100 fw-bold">Elige tus opciones</button>
+            </form>
+            <div class="delivery-info-box border rounded p-3 mt-4 bg-light">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-truck fs-4 me-3 text-success"></i>
+                    <div><strong>Despacho a domicilio</strong><br><span class="small text-muted">Disponible</span></div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-store fs-4 me-3 text-success"></i>
+                    <div><strong>Retira tu compra</strong><br><span class="small text-muted">Disponible</span></div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    </div> 
+
+    <hr class="my-5">
+
+    <!-- Sección de Descripción y Ficha Técnica (Vista Escritorio) -->
+    <div class="d-none d-md-block">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="description-section">
+                    <h4 class="specifications-title">Descripción del Producto</h4>
+                    <div class="prose">
+                        {{ product.descripcion|linebreaksbr|default:"No hay descripción disponible para este producto." }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="specifications-section">
+                    <h4 class="specifications-title">Ficha Técnica</h4>
+                    {% if product.especificaciones %}
+                    <div class="specifications-grid">
+                        {% for key, value in product.especificaciones.items %}
+                            {% if value %}
+                            <div class="spec-row">
+                                <div class="spec-property-name">{{ key }}</div>
+                                <div class="spec-property-value">{{ value }}</div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>No hay especificaciones disponibles para este producto.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Descripción y Ficha Técnica (Vista Móvil con Pestañas) -->
+    <div class="d-md-none">
+        <ul class="nav nav-tabs product-info-tabs" id="productInfoTabsMobile" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab-mobile" data-bs-toggle="tab" data-bs-target="#description-content-mobile" type="button" role="tab">Descripción</button>
+            </li>
+            {% if product.especificaciones %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="specifications-tab-mobile" data-bs-toggle="tab" data-bs-target="#specifications-content-mobile" type="button" role="tab">Ficha Técnica</button>
+            </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content border border-top-0 p-3" id="productInfoTabsContentMobile">
+            <div class="tab-pane fade show active" id="description-content-mobile" role="tabpanel">
+                <div class="prose">
+                    {{ product.descripcion|linebreaksbr|default:"No hay descripción disponible para este producto." }}
+                </div>
+            </div>
+            {% if product.especificaciones %}
+            <div class="tab-pane fade" id="specifications-content-mobile" role="tabpanel">
+                <div class="specifications-grid-mobile">
+                    {% for key, value in product.especificaciones.items %}
+                        {% if value %}
+                        <div class="spec-row-mobile">
+                            <div class="spec-property-name-mobile">{{ key }}</div>
+                            <div class="spec-property-value-mobile">{{ value }}</div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+   
+</div>
+
+<!-- Modal para la Guía de Tallas -->
+{% if product.categoria and product.categoria.guia_tallas_pdf %}
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-labelledby="sizeGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sizeGuideModalLabel">Guía de Tallas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-none d-lg-block">
+                    <iframe src="{{ product.categoria.guia_tallas_pdf.url }}" width="100%" height="600px" style="border:none;"></iframe>
+                </div>
+                <div class="d-lg-none text-center p-4">
+                    <p class="lead">La guía de tallas se abrirá en una nueva pestaña.</p>
+                    <a href="{{ product.categoria.guia_tallas_pdf.url }}" target="_blank" class="btn btn-primary btn-lg mt-3"><i class="fas fa-file-pdf me-2"></i> Ver / Descargar Guía</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<!-- Datos JSON para el script de variantes -->
+{{ variants_data_json|json_script:"product-detail-variant-data" }}
+{{ variants_data_json|json_script:"variants-data" }}
+
+{% endblock content %}
+
+
+{% block extra_js %}
+    <script src="{% static 'myproducts/js/product_variant_selector.js' %}"></script>
+{% endblock extra_js %}

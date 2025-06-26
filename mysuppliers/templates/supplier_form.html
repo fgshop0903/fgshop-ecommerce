@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>{{ titulo_pagina }}</h2>
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-4 d-flex justify-content-between">
+                    <a href="{% if object %}{% url 'mysuppliers:supplier_detail' object.pk %}{% else %}{% url 'mysuppliers:supplier_list' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">{{ nombre_boton }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

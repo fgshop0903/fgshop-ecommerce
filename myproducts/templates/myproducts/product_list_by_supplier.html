@@ -1,0 +1,93 @@
+{# myproducts/templates/myproducts/product_list_by_supplier.html #}
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ page_title|default:"Productos por Proveedor" }} - FG Shop
+{% endblock title %}
+
+{% block extra_head %}
+    {# Cargamos solo una vez el CSS, no es necesario duplicarlo #}
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            
+            <!-- Encabezado de la página con la información del proveedor -->
+            <div class="supplier-header text-center mb-4 p-4 bg-light rounded">
+                <h1 class="h2 page-title">{{ page_title }}</h1>
+            </div>
+
+            <!-- Comprobamos si hay productos en la página actual -->
+            {% if page_obj %}
+
+                <!-- Cuadrícula de productos -->
+                <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-2 g-lg-4">
+                    {% for producto in page_obj %}
+                    <div class="col d-flex">
+                        {% include "myproducts/includes/product_card.html" with producto=producto %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Bloque de Paginación -->
+                {% if is_paginated %}
+                <nav aria-label="Paginación de productos" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        
+                        {# Botón 'Anterior' #}
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                                    <span aria-hidden="true">«</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">«</span>
+                            </li>
+                        {% endif %}
+                        
+                        {# Números de página #}
+                        {% for i in paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {# Botón 'Siguiente' #}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                                    <span aria-hidden="true">»</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">»</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <!-- Mensaje que se muestra si no hay productos -->
+                <div class="alert alert-info mt-3 text-center" role="alert">
+                    No hay productos disponibles del proveedor <strong>{{ supplier.nombre_empresa|default:"seleccionado" }}</strong> en este momento.
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+    <script src="{% static 'myproducts/js/product_pod_hover.js' %}"></script>
+{% endblock extra_js %}

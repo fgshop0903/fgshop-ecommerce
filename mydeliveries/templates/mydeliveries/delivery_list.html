@@ -1,0 +1,56 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo_pagina }}</h2>
+        <a href="{% url 'mydeliveries:delivery_create' %}" class="btn btn-success">➕ Registrar Nuevo Envío</a>
+    </div>
+    <hr>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if deliveries %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID Pedido</th>
+                        <th>Cliente</th>
+                        <th>Estado Envío</th>
+                        <th>Transportista</th>
+                        <th>Tracking</th>
+                        <th>Fecha Prog.</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in deliveries %}
+                    <tr>
+                        <td><a href="{{ delivery.order.get_absolute_url }}">#{{ delivery.order.id_display }}</a></td>
+                        <td>{{ delivery.cliente_nombre }}</td>
+                        <td><span class="badge bg-info">{{ delivery.get_estado_entrega_display }}</span></td>
+                        <td>{{ delivery.get_transportista_display|default:"-" }}</td>
+                        <td>{{ delivery.numero_seguimiento|default:"-" }}</td>
+                        <td>{{ delivery.fecha_programada_envio|date:"d M Y"|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'mydeliveries:delivery_update' delivery.pk %}" class="btn btn-sm btn-warning">✏️</a>
+                            <a href="{% url 'mydeliveries:delivery_detail' delivery.pk %}" class="btn btn-sm btn-info">👁️</a>
+                            {# Añadir botón de eliminar si es necesario #}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Paginación si la implementas #}
+    {% else %}
+        <div class="alert alert-info">No hay envíos registrados.</div>
+    {% endif %}
+</div>
+{% endblock %}

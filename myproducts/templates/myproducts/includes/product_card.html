@@ -1,0 +1,107 @@
+{% load static %}
+{% load humanize %}
+
+{% with variant_to_display=offer_variant|default:producto.variant_to_display %}
+<div class="product-pod card h-100 border-0 shadow-sm">
+    <div class="product-image-container position-relative">
+        {# El enlace ahora puede apuntar a la variante específica #}
+        <a href="{{ producto.get_absolute_url }}{% if offer_variant %}?variant={{ offer_variant.id }}{% endif %}" class="product-image-link">
+            <img src="{% if producto.main_image_url %}{{ producto.main_image_url }}{% else %}{% static 'core/img/placeholder.png' %}{% endif %}" 
+                 class="card-img-top" 
+                 alt="{{ producto.nombre }}"
+                 id="product-image-{{ producto.id }}"
+                 loading="lazy">
+        </a>
+        <button class="pod-gallery-btn prev" data-direction="-1" aria-label="Imagen anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="pod-gallery-btn next" data-direction="1" aria-label="Imagen siguiente"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="card-body d-flex flex-column">
+        <h6 class="product-brand">{{ producto.brand.nombre|upper|default:'' }}</h6>
+        <p class="product-title fw-normal mb-2">
+            <a href="{{ producto.get_absolute_url }}{% if offer_variant %}?variant={{ offer_variant.id }}{% endif %}" class="text-dark">{{ producto.nombre }}</a>
+        </p>
+
+        {# Si estamos en una tarjeta de oferta, mostramos el nombre de la variante #}
+        {% if offer_variant %}
+            <p class="variant-name-offer text-primary small mb-2 fw-bold">{{ offer_variant.nombre_variante }}</p>
+        {% endif %}
+
+        {% if producto.supplier %}
+            <p class="product-seller small text-muted d-flex align-items-center">
+                Por: 
+                {% if producto.supplier.logo %}
+                <img src="{{ producto.supplier.logo.url }}" class="supplier-logo-pod mx-1" alt="{{ producto.supplier.nombre_empresa }}">
+                {% endif %}
+                <a href="{% url 'myproducts:product_list_by_supplier' producto.supplier.pk %}" class="text-muted text-decoration-none">{{ producto.supplier.nombre_empresa }}</a>
+            </p>
+        {% endif %}
+        
+        {% if producto.color_info %}
+            <div class="color-swatches mb-2" data-product-id="{{ producto.id }}">
+                {% for color in producto.color_info|slice:":5" %}
+                    <span class="swatch" 
+                          style="background-color: {{ color.code|default:'#ccc' }};" 
+                          data-images="{{ color.images|join:',' }}" 
+                          title="{{ color.name }}"></span>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="mt-auto">
+             <div class="price-container d-flex flex-wrap align-items-baseline gap-2">
+                {% if offer_variant %}
+                    {# Si es una tarjeta de oferta, SIEMPRE mostramos el precio de la oferta #}
+                    <span class="product-price text-danger fw-bold d-inline-flex align-items-baseline">
+                        <span>S/</span>
+                        <span class="ms-1">{{ offer_variant.precio_variante|floatformat:2|intcomma }}</span>
+                    </span>
+                    <span class="product-base-price text-muted text-decoration-line-through d-inline-flex align-items-baseline">
+                        <span>S/</span>
+                        <span class="ms-1">{{ producto.precio_base|floatformat:2|intcomma }}</span>
+                    </span>
+                {% else %}
+                    {# Comportamiento normal para la lista de productos #}
+                    {% if producto.min_variant_price and producto.precio_base and producto.min_variant_price < producto.precio_base %}
+                        <span class="product-price text-danger fw-bold d-inline-flex align-items-baseline">
+                            <span>S/</span>
+                            <span class="ms-1">{{ producto.min_variant_price|floatformat:2|intcomma }}</span>
+                        </span>
+                        <span class="product-base-price text-muted text-decoration-line-through d-inline-flex align-items-baseline">
+                            <span>S/</span>
+                            <span class="ms-1">{{ producto.precio_base|floatformat:2|intcomma }}</span>
+                        </span>
+                    {% else %}
+                        <span class="product-price fw-bold d-inline-flex align-items-baseline">
+                            <span>S/</span>
+                            <span class="ms-1">{{ producto.min_variant_price|default:producto.precio_base|floatformat:2|intcomma }}</span>
+                        </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% if producto.acepta_cuotas %}
+                <div class="installments-text small text-success">
+                    {{ producto.numero_de_cuotas }} cuotas sin interés
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="add-to-cart-pod-container mt-2">
+            {% if producto.active_variants|length > 1 %}
+                <a href="{{ producto.get_absolute_url }}{% if offer_variant %}?variant={{ offer_variant.id }}{% endif %}" class="btn btn-dark btn-sm w-100 add-to-cart-pod-btn">
+                    Elige tus opciones
+                </a>
+            {% else %}
+                <form action="{% url 'mycart:cart_add' producto.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="variant_id" value="{% if variant_to_display %}{{ variant_to_display.id }}{% endif %}">
+                    <input type="hidden" name="quantity" value="1">
+                    <input type="hidden" name="update" value="False">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 add-to-cart-pod-btn"> Agregar al Carro
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endwith %}

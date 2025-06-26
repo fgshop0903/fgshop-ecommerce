@@ -1,0 +1,66 @@
+/* mycart/static/mycart/css/cart.css */
+
+.cart-item-row .form-control {
+    width: 60px !important;
+    text-align: center;
+    display: inline-block;
+}
+
+.cart-item-row h6 {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+/* Estilos para el desglose de descuentos */
+.discount-details summary {
+    cursor: pointer;
+    list-style: none; /* Oculta el marcador por defecto del <summary> */
+}
+
+/* Icono de flecha para el desplegable */
+.discount-details summary::-webkit-details-marker {
+    display: none; /* Oculta el marcador en Chrome/Safari */
+}
+.discount-details summary::after {
+    content: '▼'; /* Flecha hacia abajo por defecto */
+    font-size: 0.7em;
+    margin-left: 0.5rem;
+    transition: transform 0.2s ease-in-out;
+}
+.discount-details[open] > summary::after {
+    transform: rotate(180deg); /* Flecha hacia arriba cuando está abierto */
+}
+
+.discount-breakdown {
+    padding-left: 1rem;
+    border-left: 2px solid #e9ecef;
+    margin-left: 5px;
+}
+.discount-breakdown .text-truncate {
+    max-width: 200px; /* Evita que nombres largos rompan el layout */
+}
+
+/* --- OCULTAR FLECHAS EN INPUTS DE TIPO NÚMERO --- */
+
+/* Para navegadores basados en WebKit como Chrome, Safari, Edge */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Para Firefox */
+.quantity-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Contenedor principal de la página del carrito */
+.cart-page-container {
+    position: relative; /* Establece el contexto de posicionamiento */
+}
+
+/* El resumen de la orden que se queda fijo */
+.order-summary-sticky {
+    position: -webkit-sticky; /* Para compatibilidad con Safari */
+    position: sticky;
+    top: 90px; /* Espacio desde la parte superior para no chocar con tu header. ¡Ajusta este valor! */
+}

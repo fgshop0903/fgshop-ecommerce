@@ -1,0 +1,105 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Crear Nueva Cuenta - FG Shop{% endblock %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <link href="{% static 'mycustomers/css/auth_forms.css' %}" rel="stylesheet"> 
+{% endblock %}
+
+{% block content %}
+<div class="container auth-form-container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3 fw-normal">Crear Nueva Cuenta</h1>
+                    </div>
+                    
+                    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}" novalidate>
+                        {% csrf_token %}
+                        
+                        {# --- RENDERIZADO PERSONALIZADO DE CAMPOS --- #}
+                        
+                        {{ form.email|as_crispy_field }}
+                        {{ form.nombres|as_crispy_field }}
+                        {{ form.apellidos|as_crispy_field }}
+
+                        <div id="div_id_username" class="mb-3">
+                            <label for="id_username" class="form-label requiredField">
+                                Nombre de Usuario<span class="asteriskField">*</span>
+                            </label>
+                            <input type="text" name="username" class="textinput textInput form-control" required="" id="id_username"
+                                   placeholder="Elige un nombre de usuario único"
+                                   value="{{ form.username.value|default:'' }}">
+                            
+                            {% for error in form.username.errors %}
+                                <div class="invalid-feedback d-block mt-1">
+                                    {{ error|escape|cut:"['"|cut:"']" }}
+                                    {% if error.params.suggestions %}
+                                        <ul class="list-unstyled mt-2 small">
+                                            {% for suggestion in error.params.suggestions %}
+                                                <li>
+                                                    <button type="button" class="btn btn-link btn-sm p-0 suggestion-btn">{{ suggestion }}</button>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {{ form.password1|as_crispy_field }}
+                        {{ form.password2|as_crispy_field }}
+                        <div class="mb-3">
+                            <label class="form-label requiredField">{{ form.title_preference.label }}<span class="asteriskField">*</span></label>
+                            <div id="id_title_preference" class="d-flex flex-wrap gap-3">
+                                {% for radio in form.title_preference %}
+                                <div class="form-check">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        <div class="d-grid mt-4">
+                            <button class="btn btn-primary btn-lg" type="submit">Registrarme</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <p class="text-center small text-muted">
+                        ¿Ya tienes una cuenta? 
+                        <a href="{% url 'account_login' %}" class="fw-medium text-decoration-none">Inicia sesión aquí</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const usernameInput = document.getElementById('id_username');
+    if (usernameInput) {
+        document.querySelectorAll('.suggestion-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                usernameInput.value = button.textContent.trim();
+                usernameInput.focus();
+            });
+        });
+    }
+});
+</script>
+{% endblock extra_js %}

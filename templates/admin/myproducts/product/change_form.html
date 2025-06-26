@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+    {{ block.super }}
+
+    {% if spec_templates_json %}
+        {{ spec_templates_json|json_script:"spec-templates-json-data" }}
+        
+        {# Pasamos también la lista de nombres para el select #}
+        {% load json_script_data %}
+        {{ spec_templates|json_script_data:"spec-templates-list" }}
+    {% endif %}
+{% endblock %}

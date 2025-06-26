@@ -1,0 +1,29 @@
+{# myproducts/templates/myproducts/includes/variant_stock_display.html #}
+{% comment %}
+
+{% endcomment %}
+
+{% if selected_variant %} {# Asumimos que el JS actualizará un 'selected_variant' o que la vista lo pasa #}
+    {% if selected_variant.stock_disponible > 0 and selected_variant.stock_disponible < 10 %}
+        <span class="text-warning fw-bold">¡Últimas {{ selected_variant.stock_disponible }} unidades!</span>
+    {% elif selected_variant.stock_disponible > 0 %}
+        <span class="text-success fw-bold">En Stock</span>
+    {% else %}
+        <span class="text-danger fw-bold">Agotado</span>
+    {% endif %}
+{% elif producto.default_variant %} {# Si no hay variante seleccionada, muestra el del default #}
+    {% if producto.default_variant.stock_disponible > 0 and producto.default_variant.stock_disponible < 10 %}
+        <span class="text-warning fw-bold">¡Últimas {{ producto.default_variant.stock_disponible }} unidades!</span>
+    {% elif producto.default_variant.stock_disponible > 0 %}
+        <span class="text-success fw-bold">En Stock</span>
+    {% else %}
+        <span class="text-danger fw-bold">Agotado</span>
+    {% endif %}
+{% elif not producto.configurable_attributes.all and producto.precio_base is not None %} {# Producto simple sin atributos configurables #}
+    {# Para productos simples, necesitarías un campo de stock en el modelo Product si no está en ProductVariant #}
+    {# Asumamos que si es simple y no tiene variantes, el stock es > 0 o se maneja de otra forma #}
+    <span class="text-success fw-bold">En Stock</span> 
+{% else %}
+    {# Estado inicial antes de que el JS actualice o si no hay default #}
+    Selecciona opciones
+{% endif %}

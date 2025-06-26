@@ -1,0 +1,146 @@
+/* myproducts/css/product_list.css */
+
+.page-title {
+    color: var(--fg-primary-color); /* ¡Usa tu color primario! */
+    font-weight: 700;
+}
+
+.product-pod {
+    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.product-pod:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    transform: translateY(-5px);
+}
+.product-pod .card-img-top {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;
+    padding: 1rem;
+}
+.product-pod .card-body {
+    padding: 0.5rem 1rem 1rem;
+}
+.product-pod .product-brand {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+.product-pod .product-title {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    min-height: 45px; /* Para alinear tarjetas con títulos de 1, 2 o 3 líneas */
+    margin-bottom: 0.5rem;
+}
+.product-pod .product-title a {
+    text-decoration: none;
+}
+.product-pod .product-title a:hover {
+    color: #0d6efd !important;
+}
+.product-pod .product-seller {
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem; /* ¡Esta es la clave! Es más pequeño que 'small' (que es 0.875rem) */
+    font-weight: 500;  /* Opcional: un grosor medio para que sea legible */
+}
+.color-swatches {
+    display: flex;
+    gap: 5px;
+    height: 20px;
+    margin-bottom: 0.5rem;
+}
+.color-swatches .swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    display: inline-block;
+}
+.price-container {
+    margin-bottom: 0.25rem;
+}
+.product-price {
+    font-size: 1.2rem;
+}
+.product-base-price {
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+.installments-text {
+    font-weight: 600;
+}
+
+.supplier-logo-pod {
+    height: 13px;
+    width: auto;
+    max-width: 60px;
+    object-fit: contain;
+}
+
+/* Botón de Agregar al Carro en la tarjeta */
+.add-to-cart-pod-btn {
+    border-radius: 20px;
+    font-weight: 600;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.color-swatches .swatch.selected {
+    border-color: #0d6efd; /* Un color primario para destacar */
+    box-shadow: 0 0 0 2px white, 0 0 0 3px #0d6efd;
+    transform: scale(1.1);
+}
+
+.product-image-container {
+    overflow: hidden;
+}
+
+.pod-gallery-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo semitransparente oscuro */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Borde sutil */
+    border-radius: 50%; /* <-- Esto los hace circulares */
+    width: 32px;  /* Tamaño un poco más grande */
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.product-pod:hover .pod-gallery-btn {
+    opacity: 1;
+}
+
+
+.pod-gallery-btn.prev {
+    left: 10px;
+}
+.pod-gallery-btn.next {
+    right: 10px;
+}
+
+/* --- Lógica de Hover para Escritorio --- */
+@media (min-width: 992px) {
+    /* Seleccionamos el contenedor del botón/formulario */
+    .add-to-cart-pod-container {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        visibility: hidden;
+    }
+
+    .product-pod:hover .add-to-cart-pod-container {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+    }
+}

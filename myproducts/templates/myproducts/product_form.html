@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %} {# Si usas django-crispy-forms para mejorar la apariencia de los formularios #}
+
+{% block title %}{{ titulo_pagina|default:"Gestionar Producto" }} - FG Shop{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1>{{ titulo_pagina|default:"Gestionar Producto" }}</h1>
+            <hr>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {# Si usas crispy-forms: #}
+                {{ form|crispy }}
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{{ object.get_absolute_url|default:request.META.HTTP_REFERER|default:'myproducts:product_list' }}" class="btn btn-outline-secondary me-md-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">{{ nombre_boton|default:"Guardar" }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

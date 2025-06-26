@@ -1,0 +1,109 @@
+/* core/static/core/css/info_page.css */
+
+.info-section {
+    padding-top: 60px; /* Espacio para compensar el header fijo */
+    margin-top: -40px; /* Truco para alinear bien con el scroll */
+    margin-bottom: 40px;
+}
+
+.info-page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--fg-primary-color);
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.info-section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--fg-text-dark);
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-left: 25px; /* Espacio para el icono */
+}
+
+/* Icono decorativo para los títulos de sección */
+.info-section-title::before {
+    content: '■'; /* Puedes cambiarlo por '►' o cualquier otro caracter */
+    position: absolute;
+    left: 0;
+    color: var(--fg-primary-color);
+    font-size: 1.2rem;
+}
+
+.lead {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.info-subtitle {
+    font-family: var(--fg-font-primary);
+    font-weight: 600;
+    color: var(--fg-primary-color);
+    margin-bottom: 0.5rem;
+}
+
+/* Estilo para las listas */
+.info-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.info-section ul li {
+    padding-left: 25px;
+    position: relative;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Icono de check para las listas */
+.info-section ul li::before {
+    content: '\F26E'; /* Código del icono check de Bootstrap Icons */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    left: 0;
+    color: #198754; /* Verde de éxito de Bootstrap */
+    font-weight: bold;
+}
+
+
+/* Estilo para el acordeón de FAQ */
+.accordion-button:not(.collapsed) {
+    color: var(--fg-text-dark);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.accordion-item {
+    border-radius: 0 !important;
+    border: 1px solid #dee2e6;
+    border-top: none;
+}
+
+.accordion-item:first-of-type {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para el menú lateral pegajoso */
+#info-nav {
+    top: 100px; /* Distancia desde arriba para que no choque con el header */
+}
+
+#info-nav .nav-link {
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-left: 3px solid transparent;
+}
+
+#info-nav .nav-link.active,
+#info-nav .nav-link:hover {
+    color: var(--fg-primary-color);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    border-left: 3px solid var(--fg-primary-color);
+}

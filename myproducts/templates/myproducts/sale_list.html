@@ -1,0 +1,116 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Ofertas Imperdibles - FG Shop{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        {# Le añado la clase page-title para que tome el color primario si lo definimos en CSS #}
+        <h1 class="display-5 fw-bold page-title">Ofertas Imperdibles</h1>
+        <p class="lead text-muted">¡Precios especiales en estas variantes! No te los pierdas.</p>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-1 g-lg-4">
+        {# ===== 1. CAMBIO IMPORTANTE AQUÍ ===== #}
+        {# Iteramos sobre 'page_obj', que contiene solo los items de la página actual #}
+        {% for variant in page_obj %}
+            <div class="col">
+                {% include "myproducts/includes/offer_variant_card.html" with variant=variant %}
+            </div>
+        {% empty %}
+            <div class="col-12 text-center">
+                <div class="alert alert-info">Actualmente no tenemos ofertas especiales. ¡Vuelve pronto!</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- ================================== -->
+    <!--   2. AQUÍ AÑADIMOS LA PAGINACIÓN     -->
+    <!-- ================================== -->
+    {% if is_paginated %}
+    <nav aria-label="Paginación de ofertas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            
+            {# Botón 'Anterior' #}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                        <span aria-hidden="true">«</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">«</span>
+                </li>
+            {% endif %}
+            
+            {# Números de página #}
+            {% for i in paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+            
+            {# Botón 'Siguiente' #}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                        <span aria-hidden="true">»</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">»</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Tu script para el slider de la tarjeta se mantiene igual.
+    // No interfiere con la paginación.
+    document.querySelectorAll('.offer-card-slider').forEach(slider => {
+        const images = slider.dataset.images.split(',').filter(Boolean);
+        if (images.length <= 1) return;
+
+        let currentIndex = 0;
+        const imgElement = slider.querySelector('.card-img-top');
+        const prevBtn = slider.querySelector('.prev');
+        const nextBtn = slider.querySelector('.next');
+
+        function updateImage() {
+            imgElement.src = images[currentIndex];
+        }
+
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateImage();
+        });
+
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            currentIndex = (currentIndex + 1) % images.length;
+            updateImage();
+        });
+    });
+});
+</script>
+{% endblock extra_js %}

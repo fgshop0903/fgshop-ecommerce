@@ -1,0 +1,167 @@
+{% extends "core/base.html" %} {# O tu plantilla base del admin si tienes una específica #}
+{% load humanize %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo_pagina }}</h2>
+        <a href="{% url 'mydeliveries:delivery_update' delivery.pk %}" class="btn btn-warning">✏️ Editar Envío</a>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Columna de Información del Envío -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Detalles del Envío</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>ID de Envío (Interno):</strong> {{ delivery.pk }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Estado Actual del Envío:</strong>
+                        <span class="badge fs-6 bg-{% if delivery.estado_entrega == 'ENTREGADO' %}success{% elif delivery.estado_entrega == 'ENTREGA_FALLIDA' or delivery.estado_entrega == 'DEVUELTO' %}danger{% else %}info{% endif %}">
+                            {{ delivery.get_estado_entrega_display }}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Fecha de Creación del Envío:</strong> {{ delivery.fecha_creacion|date:"d M Y, H:i" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Última Actualización:</strong> {{ delivery.fecha_actualizacion|date:"d M Y, H:i" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Fecha Programada de Envío/Recojo:</strong> {{ delivery.fecha_programada_envio|date:"d M Y"|default:"No especificada" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Fecha Estimada de Entrega al Cliente:</strong> {{ delivery.fecha_estimada_entrega_cliente|date:"d M Y"|default:"No especificada" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Fecha de Entrega Real al Cliente:</strong> {{ delivery.fecha_entrega_real_cliente|date:"d M Y"|default:"No entregado aún" }}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Transportista</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Transportista:</strong> {{ delivery.get_transportista_display|default:"No especificado" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Persona/Repartidor (si aplica):</strong> {{ delivery.entregado_por_persona|default:"N/A" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Número de Seguimiento (Tracking):</strong> {{ delivery.numero_seguimiento|default:"N/A" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>URL de Seguimiento:</strong>
+                        {% if delivery.url_seguimiento %}
+                            <a href="{{ delivery.url_seguimiento }}" target="_blank">{{ delivery.url_seguimiento }}</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Costos y Observaciones</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Costo Real del Envío (para FG Shop):</strong>
+                        S/. {{ delivery.costo_real_envio|floatformat:2|intcomma|default:"No especificado" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Observaciones del Envío:</strong>
+                        <p class="mb-0">{{ delivery.observaciones_envio|linebreaksbr|default:"Sin observaciones." }}</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Columna de Información del Pedido Asociado -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pedido Asociado</h5>
+                    <a href="{% url 'admin:myorders_order_change' delivery.order.pk %}" class="btn btn-sm btn-outline-info">Ver en Admin Pedidos</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>ID Pedido:</strong> <a href="{% url 'myorders:order_detail_admin' delivery.order.id %}">#{{ delivery.order.id_display }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Cliente:</strong> {{ delivery.order.nombre_cliente|default:delivery.order.user.get_full_name|default:delivery.order.user.username }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Email Cliente:</strong> {{ delivery.order.email_cliente|default:delivery.order.user.email }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Fecha del Pedido:</strong> {{ delivery.order.fecha_pedido|date:"d M Y, H:i" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Estado General del Pedido:</strong> <span class="badge bg-secondary">{{ delivery.order.get_estado_pedido_display }}</span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Total del Pedido:</strong> S/. {{ delivery.order.total_pedido|floatformat:2|intcomma }}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Dirección de Envío del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        {{ delivery.order.nombre_cliente }}<br>
+                        {{ delivery.order.direccion_envio|linebreaksbr }}<br>
+                        {{ delivery.order.ciudad_envio }}, {{ delivery.order.departamento_envio }}<br>
+                        {{ delivery.order.pais_envio }}<br>
+                        {% if delivery.order.telefono_contacto_envio %}Tel: {{ delivery.order.telefono_contacto_envio }}{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {% if delivery.order.observaciones_cliente %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Notas del Cliente en el Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">{{ delivery.order.observaciones_cliente|linebreaksbr }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if delivery.order.observaciones_internas %}
+            <div class="alert alert-secondary">
+                <h5>Notas Internas del Pedido (Admin):</h5>
+                <p>{{ delivery.order.observaciones_internas|linebreaksbr }}</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'mydeliveries:delivery_list' %}" class="btn btn-outline-secondary">← Volver al Listado de Envíos</a>
+    </div>
+
+</div>
+{% endblock %}

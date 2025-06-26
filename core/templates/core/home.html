@@ -1,0 +1,388 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}FG Shop - Tu Tienda Online Completa{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'core/css/custom_styles.css' %}">
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block full_width_content %}
+<section class="hero-section mb-5">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            {% for banner in banners %}
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
+                class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}"
+                aria-label="Slide {{ forloop.counter }}"></button>
+            {% empty %} {# Si no hay banners cargados en la BD #}
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true"
+                aria-label="Slide 1"></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner">
+            {% for banner in banners %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                {# AQUÍ ESTÁ LA LÓGICA PARA HACER LA IMAGEN CLICABLE #}
+                {% if banner.url_destino %}
+                    <a href="{{ banner.url_destino }}" class="d-block w-100 h-100"> {# Añadimos w-100 h-100 para que el enlace ocupe todo el item #}
+                {% endif %}
+                
+                <picture>
+                    {% if banner.imagen_movil %}
+                        <source media="(max-width: 767px)" srcset="{{ banner.imagen_movil.url }}">
+                    {% endif %}
+                    <img src="{{ banner.imagen.url }}" class="d-block w-100" alt="{{ banner.titulo }}">
+                </picture>
+
+                {% if banner.url_destino %}
+                    </a> {# CERRAMOS LA ETIQUETA <a> #}
+                {% endif %}
+                {# FIN DE LA LÓGICA PARA HACER LA IMAGEN CLICABLE #}
+
+                {# Este carousel-caption se mantendrá invisible en móviles debido a 'd-none' #}
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h5>{{ banner.titulo }}</h5>
+                    <p>{{ banner.subtitulo }}</p>
+                    {% if banner.url_destino and banner.texto_boton %}
+                    <p><a href="{{ banner.url_destino }}" class="btn btn-lg btn-primary">{{ banner.texto_boton }}</a></p>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %} {# Contenido por defecto si no hay banners cargados en la BD #}
+            <div class="carousel-item active">
+                {# Si quieres que el banner por defecto también sea clicable, puedes añadir un <a> aquí #}
+                {# Por ejemplo: <a href="{% url 'myproducts:product_list' %}" class="d-block w-100 h-100"> #}
+                <picture>
+                    {# Si tienes una imagen móvil por defecto para cyberwow.jpeg, la pondrías aquí #}
+                    {# <source media="(max-width: 767px)" srcset="{% static 'core/img/cyberwow_mobile.jpeg' %}"> #}
+                    <img src="{% static 'core/img/cyberwow.jpeg' %}" class="d-block w-100"
+                        alt="Oferta Semanal por Defecto">
+                </picture>
+                {# Si abriste un <a>, ciérralo aquí: </a> #}
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h5>¡Ofertas Imperdibles!</h5>
+                    <p>Descuentos exclusivos en productos seleccionados. ¡No te lo pierdas!</p>
+                    <p><a href="#" class="btn btn-lg btn-primary">Ver Ofertas</a></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Siguiente</span>
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block content %}
+{# PROPUESTA DE VALOR / BENEFICIOS CLAVE #}
+{# PROPUESTA DE VALOR / BENEFICIOS CLAVE (AHORA RESPONSIVO) #}
+<section class="value-propositions mb-5">
+    <div class="container">
+        <!-- Contenedor del carrusel, visible en móvil -->
+        <div class="horizontal-scroll-mobile">
+            <div class="item-benefit">
+                <i class="bi bi-truck"></i>
+                <h5>Envío Rápido</h5>
+                <p>En tiempo récord.</p>
+            </div>
+            <div class="item-benefit">
+                <i class="bi bi-shield-check"></i>
+                <h5>Pagos Seguros</h5>
+                <p>Total confianza.</p>
+            </div>
+            <div class="item-benefit">
+                <i class="bi bi-patch-check"></i>
+                <h5>Calidad Garantizada</h5>
+                <p>Los mejores productos.</p>
+            </div>
+            <div class="item-benefit">
+                <i class="bi bi-headset"></i>
+                <h5>Soporte 24/7</h5>
+                <p>Siempre para ayudarte.</p>
+            </div>
+        </div>
+
+        <!-- Cuadrícula original, visible solo en escritorio -->
+        <div class="d-none d-lg-block bg-light rounded py-4">
+             <div class="row text-center">
+                <div class="col-lg-3"><i class="bi bi-truck fs-2 text-primary-custom"></i><h5 class="mt-2">Envío Rápido</h5><p class="small text-muted">Recibe tus compras en tiempo récord.</p></div>
+                <div class="col-lg-3"><i class="bi bi-shield-check fs-2 text-primary-custom"></i><h5 class="mt-2">Pagos Seguros</h5><p class="small text-muted">Compra con total confianza y seguridad.</p></div>
+                <div class="col-lg-3"><i class="bi bi-patch-check fs-2 text-primary-custom"></i><h5 class="mt-2">Calidad Garantizada</h5><p class="small text-muted">Solo los mejores productos para ti.</p></div>
+                <div class="col-lg-3"><i class="bi bi-headset fs-2 text-primary-custom"></i><h5 class="mt-2">Soporte 24/7</h5><p class="small text-muted">Estamos aquí para ayudarte siempre.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# CATEGORÍAS DESTACADAS (AHORA RESPONSIVO) #}
+<section class="featured-categories mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Explora Nuestras Categorías</h2>
+
+        <div class="horizontal-scroll-mobile d-lg-none">
+            {% for category in featured_categories|slice:":25" %}
+            <div class="item-category">
+                <a href="{{ category.get_absolute_url }}" class="card text-decoration-none category-card h-100">
+                    {% if category.imagen_categoria %}
+                        <img src="{{ category.imagen_categoria.url }}" class="card-img-top" alt="{{ category.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x200.png?text={{ category.nombre|urlencode }}" class="card-img-top" alt="{{ category.nombre }}">
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title category-card-title">{{ category.nombre }}</h5>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-center">Próximamente categorías destacadas.</p>
+            {% endfor %}
+        </div>
+
+        <div class="d-none d-lg-block">
+            <div class="row row-cols-lg-4 g-4">
+                {% for category in featured_categories|slice:":8" %}
+                <div class="col">
+                    <a href="{{ category.get_absolute_url }}" class="card text-decoration-none category-card h-100">
+                    {% if category.imagen_categoria %}
+                        <img src="{{ category.imagen_categoria.url }}" class="card-img-top" alt="{{ category.nombre }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x200.png?text={{ category.nombre|urlencode }}" class="card-img-top" alt="{{ category.nombre }}">
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title category-card-title">{{ category.nombre }}</h5>
+                    </div>
+                    </a>
+                </div>
+                {% empty %}
+                <p class="text-center">Próximamente categorías destacadas.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ============================================================== #}
+{#          INICIO DE LOS 4 CARUSELES DE NOVEDADES          #}
+{# ============================================================== #}
+
+<section class="new-products mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Novedades para ti<span class="user-title"></span></h2>
+
+        <!-- 1. VERSIÓN MÓVIL: LOS 4 CARUSELES (Visible solo en pantallas pequeñas) -->
+        <div class="d-lg-none">
+            {# CARRUSEL 1: Productos del 1 al 20 #}
+            {% if new_products|length > 0 %}<section class="product-carousel-section mb-4"><div class="product-carousel-container"><div class="product-carousel">{% for producto in new_products|slice:":20" %}<div class="carousel-item-product">{% include "myproducts/includes/product_card.html" with producto=producto %}</div>{% endfor %}</div></div></section>{% endif %}
+
+            {# CARRUSEL 2: Productos del 21 al 40 #}
+            {% if new_products|length > 20 %}<section class="product-carousel-section mb-4"><div class="product-carousel-container"><div class="product-carousel">{% for producto in new_products|slice:"20:40" %}<div class="carousel-item-product">{% include "myproducts/includes/product_card.html" with producto=producto %}</div>{% endfor %}</div></div></section>{% endif %}
+
+            {# CARRUSEL 3: Productos del 41 al 60 #}
+            {% if new_products|length > 40 %}<section class="product-carousel-section mb-4"><div class="product-carousel-container"><div class="product-carousel">{% for producto in new_products|slice:"40:60" %}<div class="carousel-item-product">{% include "myproducts/includes/product_card.html" with producto=producto %}</div>{% endfor %}</div></div></section>{% endif %}
+
+            {# CARRUSEL 4: Productos del 61 al 80 #}
+            {% if new_products|length > 60 %}<section class="product-carousel-section mb-5"><div class="product-carousel-container"><div class="product-carousel">{% for producto in new_products|slice:"60:80" %}<div class="carousel-item-product">{% include "myproducts/includes/product_card.html" with producto=producto %}</div>{% endfor %}</div></div></section>{% endif %}
+        </div>
+
+        <!-- 2. VERSIÓN ESCRITORIO: CUADRÍCULA (Visible solo en pantallas grandes) -->
+        <div class="d-none d-lg-block">
+            {# Cuadrícula con 5 columnas en escritorio #}
+            <div class="row row-cols-lg-5 g-3">
+                {# Mostramos hasta 15 productos para tener 3 filas de 5 #}
+                {% for producto in new_products|slice:":15" %}
+                    <div class="col">
+                        {% include "myproducts/includes/product_card.html" with producto=producto %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if not new_products %}
+            <p class="text-center">Próximamente tendremos nuevos productos.</p>
+        {% endif %}
+    </div>
+</section>
+
+{# BANNER PROMOCIONAL SECUNDARIO (EJEMPLO) #}
+<section class="promo-banner-secondary mb-5">
+    <div class="container p-5 bg-primary-custom text-white rounded text-center">
+            <h3>Oferta Especial<span class="user-title"></span>, ¡no te la pierdas!</h3>
+        <p>¡Hasta 50% de descuento en línea seleccionada! Solo por tiempo limitado.</p>
+        <a href="{% url 'myproducts:sale_list' %}" class="btn btn-light btn-lg">Descubrir Ofertas</a>
+    </div>
+</section>
+
+{# PRODUCTOS DESTACADOS (CUADRÍCULA DE 15) #}
+<section class="sale-products mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Productos destacados</h2>
+        
+        {# Cuadrícula responsiva: 2 cols en móvil, 3 en tablet, 5 en escritorio #}
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-1">
+            {# Mostramos un máximo de 15 productos destacados #}
+            {% for producto in sale_products|slice:":15" %}
+                <div class="col d-flex"> {# d-flex para alinear tarjetas #}
+                    {% include "myproducts/includes/product_card.html" %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if not sale_products %}
+            <p class="text-center">Pronto tendremos más productos destacados.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if dynamic_testimonials %}
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="text-center section-title">La experiencia de nuestros clientes</h2>
+
+        <div id="testimonialsCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for testimonial in dynamic_testimonials %}
+                {% if forloop.counter0|divisibleby:3 %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <div class="row g-4 justify-content-center">
+                {% endif %}
+                        
+                        <div class="col-md-6 col-lg-4 d-flex align-items-stretch">
+                            <div class="testimonial-card-modern">
+                                <!-- Imagen del Producto (MODIFICADA PARA ABRIR MODAL) -->
+                                <a href="#" class="testimonial-product-image" 
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#imageModal"
+                                   data-image-url="{{ testimonial.get_product_image_url }}">
+                                    {% if testimonial.get_product_image_url %}
+                                        <img src="{{ testimonial.get_product_image_url }}" alt="Producto reseñado por {{ testimonial.author_name }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/400x300.png?text=Producto" alt="Imagen de producto no disponible">
+                                    {% endif %}
+                                </a>
+
+                                <!-- Contenido del Testimonio -->
+                                <div class="testimonial-content">
+                                    <blockquote class="testimonial-quote">
+                                        <p class="mb-0">"{{ testimonial.testimonial_text|truncatewords:40 }}"</p>
+                                    </blockquote>
+                                    
+                                    <div class="testimonial-author">
+                                        {% if testimonial.get_author_image_url %}
+                                            <img src="{{ testimonial.get_author_image_url }}" class="author-avatar" alt="{{ testimonial.author_name }}">
+                                        {% else %}
+                                             <img src="https://via.placeholder.com/40x40.png?text={{ testimonial.author_name|first }}" class="author-avatar" alt="{{ testimonial.author_name }}">
+                                        {% endif %}
+                                        <span class="author-name">{{ testimonial.author_name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                {% if forloop.counter|divisibleby:3 or forloop.last %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Controles -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+
+            <!-- Indicadores -->
+            <div class="carousel-indicators" style="position: relative; margin-top: 2rem;">
+              {% for testimonial in dynamic_testimonials %}
+                {% if forloop.counter0|divisibleby:3 %}
+                  {% widthratio forloop.counter0 3 1 as slide_index %}
+                  <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="{{ slide_index }}" class="{% if forloop.first %}active{% endif %}" aria-current="true" aria-label="Slide {{ slide_index|add:1 }}"></button>
+                {% endif %}
+              {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% comment %} MODAL PARA VISUALIZAR LA IMAGEN COMPLETA (AÑADIDO) {% endcomment %}
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size: 1.2rem;"></button>
+      </div>
+      <div class="modal-body p-2 text-center">
+        <img src="" id="modalImage" class="img-fluid rounded shadow-lg" alt="Imagen del producto en tamaño completo">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+{% endif %}
+
+{# SUSCRIPCIÓN A NEWSLETTER (VERSIÓN MEJORADA) #}
+<section class="newsletter-signup py-5 text-center">
+    <div class="container">
+        <h3>¡No te pierdas de nada<span class="user-title"></span>!</h3>
+        
+        {# 1. Añadimos un ID a este párrafo #}
+        <p id="newsletter-pitch">Suscríbete a nuestro boletín y sé el primero en enterarte.</p>
+        
+        {# 2. Eliminamos el <form> y convertimos el botón en un enlace <a> #}
+        <div class="row g-3 justify-content-center mt-3">
+            <div class="col-auto">
+                <label for="newsletterEmail" class="visually-hidden">Correo Electrónico</label>
+                <input type="email" class="form-control" id="newsletterEmail" placeholder="tu.correo@ejemplo.com" readonly>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'account_signup' %}" class="btn btn-primary">¡Quiero mi cuenta ahora!</a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+    {{ block.super }} {# Importante para no sobreescribir otros scripts si los hubiera #}
+    <script src="{% static 'myproducts/js/product_pod_hover.js' %}"></script>
+
+    {# SCRIPT PARA EL MODAL DE IMAGEN (AÑADIDO) #}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const imageModal = document.getElementById('imageModal');
+        if (imageModal) {
+            imageModal.addEventListener('show.bs.modal', function (event) {
+                const triggerElement = event.relatedTarget; 
+                const imageUrl = triggerElement.getAttribute('data-image-url');
+                const modalImage = imageModal.querySelector('#modalImage');
+                modalImage.src = imageUrl;
+            });
+
+            // Opcional: Limpiar el src cuando se cierra el modal para evitar que se vea la imagen anterior por un instante
+            imageModal.addEventListener('hidden.bs.modal', function () {
+                const modalImage = imageModal.querySelector('#modalImage');
+                modalImage.src = '';
+            });
+        }
+    });
+    </script>
+{% endblock %}

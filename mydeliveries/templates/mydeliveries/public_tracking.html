@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>{{ titulo_pagina }}</h2>
+            <p>Ingresa el ID de tu pedido para ver el estado del envío.</p>
+            
+            <form method="get" class="mb-4">
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-primary mt-2">Buscar Pedido</button>
+            </form>
+
+            {% if error_message %}
+                <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            {% if order %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Información del Pedido #{{ order.id_display }}</h4>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Cliente:</strong> {{ order.nombre_cliente|default:order.user.get_full_name }}</li>
+                        <li class="list-group-item"><strong>Fecha del Pedido:</strong> {{ order.fecha_pedido|date:"d M Y" }}</li>
+                        <li class="list-group-item"><strong>Estado General del Pedido:</strong> <span class="badge bg-secondary">{{ order.get_estado_pedido_display }}</span></li>
+                    </ul>
+                </div>
+
+                {% if delivery %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h4>Estado del Envío</h4>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><strong>Estado Actual del Envío:</strong> <span class="badge bg-info">{{ delivery.get_estado_entrega_display }}</span></li>
+                            {% if delivery.transportista %}
+                            <li class="list-group-item"><strong>Transportista:</strong> {{ delivery.get_transportista_display }}</li>
+                            {% endif %}
+                            {% if delivery.numero_seguimiento %}
+                            <li class="list-group-item">
+                                <strong>Número de Seguimiento:</strong> {{ delivery.numero_seguimiento }}
+                                {% if delivery.url_seguimiento %}
+                                    <a href="{{ delivery.url_seguimiento }}" target="_blank" class="ms-2">(Rastrear Externamente)</a>
+                                {% endif %}
+                            </li>
+                            {% endif %}
+                            {% if delivery.fecha_estimada_entrega_cliente %}
+                            <li class="list-group-item"><strong>Fecha Estimada de Entrega:</strong> {{ delivery.fecha_estimada_entrega_cliente|date:"d M Y" }}</li>
+                            {% endif %}
+                             {% if delivery.fecha_entrega_real_cliente %}
+                            <li class="list-group-item"><strong>Fecha de Entrega Real:</strong> {{ delivery.fecha_entrega_real_cliente|date:"d M Y" }}</li>
+                            {% endif %}
+                            {% if delivery.observaciones_envio %}
+                            <li class="list-group-item"><strong>Observaciones:</strong> {{ delivery.observaciones_envio|linebreaksbr }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% elif order %} {# Order existe pero no delivery info #}
+                    <div class="alert alert-info mt-4">
+                        Tu pedido está siendo procesado. La información de envío estará disponible pronto.
+                    </div>
+                {% endif %}
+            
+            {% elif request.GET and not error_message %} {# Si hubo un intento de búsqueda y no hay error pero tampoco order #}
+                <div class="alert alert-warning">
+                    Por favor, ingresa un ID de pedido válido para buscar.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

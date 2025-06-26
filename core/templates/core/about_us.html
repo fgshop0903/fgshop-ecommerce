@@ -1,0 +1,159 @@
+<!-- core/templates/core/about_us.html (VERSIÓN MEJORADA) -->
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+    {# Vamos a necesitar un CSS específico para esta página #}
+    <link rel="stylesheet" href="{% static 'core/css/info_page.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Columna para el Menú Lateral (se explica en el Paso 3) -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <nav id="info-nav" class="sticky-top">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#acerca-de-nosotros">Acerca de Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#vende-con-nosotros">Vende en FG Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#politicas-envio">Políticas de Envío</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#politica-devoluciones">Política de Devoluciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#terminos-y-condiciones">Términos y Condiciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#preguntas-frecuentes">Preguntas Frecuentes</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Columna Principal para el Contenido -->
+        <div class="col-lg-9">
+            <!-- Sección "Acerca de Nosotros" -->
+            <section id="acerca-de-nosotros" class="info-section">
+                <h1 class="info-page-title">Acerca de Nosotros</h1>
+                <p class="lead">En FG Shop, creemos en un comercio digital accesible, seguro y eficiente para todos. Somos una tienda virtual peruana confiable y moderna que ofrece una gran variedad de productos.</p>
+                <p>💡 Seguridad, confianza y respaldo son nuestros pilares. Cada compra está protegida, las entregas son garantizadas y el proceso de pago es 100% seguro. Nos enfocamos en brindar una experiencia de compra rápida, sin complicaciones y con atención personalizada.</p>
+                
+                <div class="row mt-4 text-center">
+                    <div class="col-md-4">
+                        <h4 class="info-subtitle">🧭 Misión</h4>
+                        <p>Ofrecer una plataforma virtual confiable y fácil de usar, donde tanto compradores como vendedores encuentren un espacio seguro y eficiente.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4 class="info-subtitle">👁️‍🗨️ Visión</h4>
+                        <p>Ser la tienda virtual más reconocida a nivel nacional por su confiabilidad, variedad de productos y servicio excepcional.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4 class="info-subtitle">💎 Valores</h4>
+                        <ul>
+                            <li>Confianza y Respaldo</li>
+                            <li>Transparencia y Claridad</li>
+                            <li>Innovación Constante</li>
+                            <li>Compromiso Total</li>
+                            <li>Colaboración y Crecimiento</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección "Vende con nosotros" -->
+            <section id="vende-con-nosotros" class="info-section">
+                <h2 class="info-section-title">Sé Parte de FG Shop (para vendedores)</h2>
+                <p>¿Tienes productos y quieres llegar a más clientes? Publica gratis en FG Shop y vende a través de nuestra tienda virtual. Nosotros nos encargamos de la vitrina, ventas, cobros y logística. Tú solo preocúpate por lo que haces mejor: ofrecer buenos productos.</p>
+                <a href="https://wa.me/51938709302" target="_blank" class="btn btn-success"><i class="bi bi-whatsapp me-2"></i>Contáctanos para comenzar</a>
+            </section>
+
+            <!-- Sección "Políticas de Envío" -->
+            <section id="politicas-envio" class="info-section">
+                <h2 class="info-section-title">Políticas de Envío</h2>
+                <ul>
+                    <li>Realizamos envíos a todo el país con operadores logísticos confiables.</li>
+                    <li>Tiempo de entrega promedio: 2 a 7 días hábiles, según la ubicación.</li>
+                    <li>El cliente puede hacer seguimiento al pedido por WhatsApp o desde su cuenta.</li>
+                    <li>Si un producto no está disponible, se ofrecerá una solución inmediata: cambio o reembolso.</li>
+                </ul>
+            </section>
+
+            <!-- Sección "Política de Devoluciones" -->
+            <section id="politica-devoluciones" class="info-section">
+                <h2 class="info-section-title">Política de Devoluciones</h2>
+                <ul>
+                    <li>Tienes hasta 2 días calendario desde la recepción del producto para solicitar una devolución.</li>
+                    <li>El producto debe estar nuevo, sin uso, en su empaque original.</li>
+                    <li>Si el motivo es falla técnica o error en el pedido, cubrimos el costo de reenvío.</li>
+                    <li>Para iniciar una devolución, contáctanos por WhatsApp o correo.</li>
+                </ul>
+            </section>
+            
+            <!-- Sección "Términos y Condiciones" -->
+            <section id="terminos-y-condiciones" class="info-section">
+                <h2 class="info-section-title">Términos y Condiciones</h2>
+                <ul>
+                    <li>Al comprar o vender en FG Shop, aceptas nuestras políticas de uso.</li>
+                    <li>Las fotos de productos son referenciales. Colores o detalles pueden variar levemente.</li>
+                    <li>Nos reservamos el derecho de modificar precios y condiciones sin previo aviso.</li>
+                    <li>Toda empresa que publique en FG Shop debe respetar las normas de venta y servicio al cliente.</li>
+                    <li>FG Shop se reserva el derecho de cancelar publicaciones o cuentas que infrinjan sus términos.</li>
+                </ul>
+            </section>
+
+            <!-- Sección "Preguntas Frecuentes" -->
+            <section id="preguntas-frecuentes" class="info-section">
+                <h2 class="info-section-title">Preguntas Frecuentes (FAQ)</h2>
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">¿Cómo puedo vender mis productos en FG Shop?</button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">Escríbenos por WhatsApp y te explicamos el proceso. ¡Es rápido y sencillo!</div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">¿Cuáles son los métodos de pago?</button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">Aceptamos pagos con tarjetas de crédito/débito, transferencias bancarias y billeteras digitales como Yape y Plin.</div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">¿Cómo sé que mi compra es segura?</button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">Todas las transacciones son verificadas, tu información está protegida con encriptación SSL y contamos con atención directa vía WhatsApp para cualquier consulta. Tu confianza es nuestra prioridad.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Script para activar el menú lateral mientras haces scroll
+        const infoNav = document.getElementById('info-nav');
+        if (infoNav) {
+            const navLinks = infoNav.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.info-section');
+
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-30% 0px -70% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        }
+    </script>
+{% endblock %}

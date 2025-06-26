@@ -1,0 +1,63 @@
+{# myproducts/templates/myproducts/product_list_by_brand.html #}
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ page_title|default:"Productos por Marca" }} - FG Shop
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="brand-header text-center mb-4 p-4 bg-light rounded">
+                {% if current_brand.logo %}
+                    <img src="{{ current_brand.logo.url }}" alt="{{ current_brand.nombre }}" style="max-height: 80px;" class="mb-3">
+                {% endif %}
+                <h1 class="h2 page-title">{{ page_title }}</h1>
+                {% if current_brand.descripcion %}
+                    <p class="lead text-muted">{{ current_brand.descripcion }}</p>
+                {% endif %}
+            </div>
+
+            {% if page_obj %} {# Cambiamos la condición para verificar page_obj #}
+
+    <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-2 g-lg-4" id="product-grid-container">
+        {% for producto in page_obj %} {# ¡Iteramos sobre page_obj! #}
+        <div class="col">
+            {% include "myproducts/includes/product_card.html" with producto=producto %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {# REEMPLAZA tu bloque de paginación por este #}
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a></li>{% else %}<li class="page-item disabled"><span class="page-link">«</span></li>{% endif %}
+            {% for i in paginator.page_range %}{% if page_obj.number == i %}<li class="page-item active"><span class="page-link">{{ i }}</span></li>{% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}<li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>{% endif %}{% endfor %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a></li>{% else %}<li class="page-item disabled"><span class="page-link">»</span></li>{% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+
+            {% else %}
+                <div class="alert alert-info mt-3" role="alert">
+                    No hay productos disponibles para la marca <strong>{{ current_brand.nombre|default:"seleccionada" }}</strong> en este momento.
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+    <script src="{% static 'myproducts/js/product_pod_hover.js' %}"></script>
+{% endblock %}

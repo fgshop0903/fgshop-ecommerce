@@ -1,0 +1,1305 @@
+/* FGSHOP/core/static/core/css/custom_styles.css */
+
+/* ----- VARIABLES DE COLOR Y TIPOGRAFÍA (Opcional pero recomendado) ----- */
+:root {
+    --fg-primary-color: #0D6EFD;
+    /* Azul Primario (Bootstrap Blue) */
+    --fg-secondary-color: #FD7E14;
+    /* Naranja Acento (Bootstrap Orange) */
+
+    --fg-text-dark: #212529;
+    /* Texto Oscuro (Bootstrap Dark) */
+    --fg-text-light: #F8F9FA;
+    /* Texto Claro (para fondos oscuros) */
+    --fg-text-muted: #6C757D;
+    /* Texto Atenuado (Bootstrap Secondary) */
+
+    --fg-bg-light: #F8F9FA;
+    /* Fondo Claro (Bootstrap Light) */
+    --fg-bg-white: #FFFFFF;
+    /* Fondo Blanco */
+    --fg-bg-dark: #212529;
+    /* Fondo Oscuro (para el footer) */
+
+    --fg-font-primary: 'Montserrat', sans-serif;
+    --fg-font-secondary: 'Open Sans', sans-serif;
+
+    --bs-primary: var(--fg-primary-color);
+    /* Sobrescribir variable de color primario de Bootstrap */
+    --bs-secondary: var(--fg-text-muted);
+    /* Sobrescribir variable de color secundario de Bootstrap */
+}
+
+/* ----- ESTILOS GLOBALES ----- */
+body {
+    font-family: var(--fg-font-secondary);
+    color: var(--fg-text-dark);
+    background-color: var(--fg-bg-white);
+    /* Fondo general del sitio */
+    line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--fg-font-primary);
+    color: var(--fg-primary-color);
+    /* Encabezados con color primario */
+    font-weight: 700;
+    /* Montserrat Bold */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--fg-primary-color);
+    text-decoration: none;
+    /* Quitar subrayado por defecto */
+}
+
+a:hover {
+    color: #0B5ED7;
+    /* Primario más oscuro al pasar el mouse */
+    text-decoration: underline;
+}
+
+/* ----- HEADER / NAVBAR MEJORADO ----- */
+.fg-navbar .navbar-brand.fg-navbar-brand { /* Más especificidad */
+    font-family: var(--fg-font-primary);
+    font-weight: 700;
+    font-size: 1.6rem; /* Un poco más grande */
+    color: var(--fg-primary-color) !important;
+    display: flex;
+    align-items: center;
+}
+
+.fg-logo-img {
+    max-height: 50px; /* Ajusta el tamaño de tu logo */
+    margin-right: 0.5rem;
+}
+/* Estilo específico para el logo en versión móvil */
+.fg-logo-mobile {
+    max-height: 28px; /* ¡Ajusta este valor a tu gusto! */
+}
+
+.fg-navbar .navbar-toggler {
+    border: none; /* Quitar borde del botón hamburguesa */
+}
+.fg-navbar .navbar-toggler:focus {
+    box-shadow: none; /* Quitar sombra al hacer foco */
+}
+
+/* Estilo por defecto (para MÓVIL) */
+.fg-search-bar-responsive {
+    /* Hacemos que sea flexible pero no se estire */
+    flex-grow: 0; 
+    /* Le damos un ancho base, por ejemplo, el 60% del espacio disponible */
+    flex-basis: 60%;
+    transition: all 0.3s ease; /* Para una transición suave */
+}
+
+/* Iconos de la derecha del Navbar */
+.fg-navbar-icons .nav-link.fg-icon-link {
+    color: var(--fg-text-dark); /* Color de los iconos */
+    padding: 0.5rem 0.6rem; /* Ajusta el espaciado alrededor de los iconos */
+}
+.fg-navbar-icons .nav-link.fg-icon-link:hover {
+    color: var(--fg-primary-color);
+}
+.fg-navbar-icons .dropdown-toggle::after { /* Ocultar la flecha del dropdown si solo tienes icono */
+    display: none;
+}
+
+.fg-cart-badge {
+    font-size: 0.65em !important; /* Control más preciso del tamaño del badge */
+    padding: 0.25em 0.45em !important;
+    margin-top: 0.1rem !important; /* Ajusta la posición vertical fina */
+    margin-left: -0.6rem !important; /* Ajusta la posición horizontal fina */
+}
+
+/* Ajustes generales para el navbar para que se vea más como los ejemplos */
+.fg-navbar {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+}
+
+
+/* ----- OFFCANVAS Y MENÚ MULTINIVEL (LÓGICA MÓVIL PREDETERMINADA) ----- */
+.offcanvas-body {
+    padding: 0;
+    overflow: hidden; /* Prevenir scroll del body del offcanvas */
+}
+
+.main-menu-container-wrapper {
+    position: relative; /* Contenedor para los paneles que se deslizan */
+    height: 100%;
+    overflow: hidden; /* Oculta los paneles que se deslizan fuera */
+}
+
+.menu-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--fg-bg-white);
+    transform: translateX(100%); /* Oculto a la derecha por defecto */
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto; /* Scroll para el contenido del panel */
+    padding-bottom: 60px; /* Espacio para el último ítem */
+    z-index: 10; /* Base para paneles */
+}
+
+.menu-panel.level-1 {
+    position: relative; /* Cambiado para que funcione en ambos modos */
+    transform: translateX(0%); /* El Nivel 1 está visible al inicio si tiene 'active' */
+    background-color: var(--fg-bg-light); /* Fondo diferente para Nivel 1 */
+    z-index: 15; /* Nivel 1 por defecto encima si es el único activo */
+}
+
+.menu-panel.level-2 {
+    z-index: 20; /* Nivel 2 encima de Nivel 1 */
+}
+
+.menu-panel.level-3 {
+    z-index: 30; /* Nivel 3 encima de Nivel 2 */
+}
+
+/* Clases de estado para JS */
+.menu-panel.active { /* Panel que está actualmente visible */
+    transform: translateX(0%);
+}
+.menu-panel.prev-active { /* Panel que se está ocultando hacia la izquierda */
+    transform: translateX(-100%);
+}
+
+
+.offcanvas-header-custom {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+    background-color: var(--fg-bg-light);
+    position: sticky;
+    top: 0;
+    z-index: 5; /* Encima del contenido scrolleable del panel */
+}
+.offcanvas-header-custom .offcanvas-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--fg-text-dark);
+    margin: 0;
+}
+.offcanvas-header-custom .btn-back-offcanvas + .offcanvas-title {
+    margin-left: 0.5rem; /* Espacio después del botón "volver" */
+}
+
+.btn-back-offcanvas {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--fg-text-muted);
+    padding: 0.25rem 0.5rem;
+}
+.btn-back-offcanvas:hover {
+    color: var(--fg-primary-color);
+}
+
+.main-categories-list-nav .nav-item-custom,
+.subcategories-list-nav .nav-item-custom {
+    border-bottom: 1px solid #f0f0f0;
+}
+.main-categories-list-nav .nav-item-custom:last-child,
+.subcategories-list-nav .nav-item-custom:last-child {
+    border-bottom: none;
+}
+
+.nav-link-custom {
+    padding: 0.9rem 1.25rem;
+    color: var(--fg-text-dark);
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.nav-link-custom:hover,
+.nav-item-custom.active-parent > .nav-link-custom { /* Para el hover de escritorio o padre activo en móvil */
+    background-color: var(--fg-bg-white);
+    color: var(--fg-primary-color);
+    font-weight: 600;
+}
+.nav-item-custom.active-parent > .nav-link-custom .bi-chevron-right,
+.nav-link-custom:hover .bi-chevron-right {
+    color: var(--fg-primary-color);
+}
+
+/* Estilos para las categorías nietas mostradas inline en Nivel 2 (solo en escritorio) */
+.nav-item-custom .grandchild-categories-list .grandchild-category-item .nav-link-grandchild {
+    display: block;
+    padding: 0.4rem 1.25rem 0.4rem 2.5rem;
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--fg-text-muted);
+    text-decoration: none;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-item-custom .grandchild-categories-list .grandchild-category-item .nav-link-grandchild:hover {
+    color: var(--fg-primary-color);
+    background-color: #e9ecef;
+}
+
+.main-categories-list-nav .nav-item-custom,
+.subcategories-list-nav .nav-item-custom {
+    border-bottom: 1px solid #f0f0f0;
+}
+.main-categories-list-nav .nav-item-custom:last-child,
+.subcategories-list-nav .nav-item-custom:last-child {
+    border-bottom: none;
+}
+
+.nav-link-custom {
+    padding: 0.9rem 1.25rem;
+    color: var(--fg-text-dark);
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.nav-link-custom:hover,
+.nav-item-custom.active-parent > .nav-link-custom { /* Para el hover de escritorio o padre activo en móvil */
+    background-color: var(--fg-bg-white);
+    color: var(--fg-primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    /*pointer-events: none;
+    cursor: default;*/
+}
+.nav-item-custom.active-parent > .nav-link-custom .bi-chevron-right,
+.nav-link-custom:hover .bi-chevron-right {
+    color: var(--fg-primary-color);
+}
+
+.main-menu-container-wrapper {
+    position: relative; /* Contenedor para los paneles que se deslizan */
+    height: 100%;
+    overflow: hidden; /* Oculta los paneles que se deslizan fuera */
+}
+
+.offcanvas-body {
+    padding: 0; /* Quitar padding si .main-menu-container maneja el suyo */
+}
+
+.icon-indicator-lvl2 { /* Icono para Nivel 2 */
+    transition: transform 0.2s ease-in-out;
+    font-size: 0.8em;
+    margin-left: auto; /* Empujar a la derecha */
+}
+.category-level-2 h5 a.category-link { /* Para que el área de clic sea todo el h5 */
+    color: var(--fg-text-dark);
+    text-decoration: none;
+    padding: 0.5rem 0; /* Ajusta el padding del enlace de Nivel 2 */
+}
+.category-level-2 h5 a.category-link:hover {
+    color: var(--fg-primary-color);
+}
+
+.icon-indicator {
+    transition: transform 0.2s ease-in-out;
+    font-size: 0.8em;
+}
+
+.btn-back-megamenu-panel {
+    border: none;
+    background: none;
+    color: var(--fg-primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5rem;
+}
+.subcategory-list { /* Lista de Categorías Nivel 3 */
+    padding-left: 0;
+    margin-bottom: 1rem;
+}
+.subcategory-list li a {
+    font-family: var(--fg-font-secondary);
+    font-size: 0.9rem;
+    color: var(--fg-text-muted);
+    padding: 0.3rem 0;
+    display: block;
+    text-decoration: none;
+}
+.subcategory-list li a:hover {
+    color: var(--fg-primary-color);
+}
+
+
+/* ----- FORMULARIOS ----- */
+.form-control:focus {
+    border-color: var(--fg-primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    /* Usar --bs-primary-rgb si lo definiste o el RGB del primario */
+}
+
+/* ----- OTROS ELEMENTOS ----- */
+/* Tarjetas de producto (ejemplo básico) */
+.card {
+    border: 1px solid #dee2e6;
+    /* Borde sutil */
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    /* Sombra al pasar el mouse */
+}
+
+.card-title a {
+    color: var(--fg-text-dark);
+    /* Títulos de tarjeta no necesariamente azules */
+    text-decoration: none;
+}
+
+.card-title a:hover {
+    color: var(--fg-primary-color);
+}
+
+/* Badges (Bootstrap ya los estiliza bien, pero puedes personalizar) */
+.badge.bg-primary {
+    background-color: var(--fg-primary-color) !important;
+}
+
+.badge.bg-secondary {
+    /* Bootstrap secondary es un gris, aquí lo usamos como acento */
+    background-color: var(--fg-secondary-color) !important;
+    color: var(--fg-bg-white) !important;
+}
+
+/* Si usas badge para el carrito, podrías darle un estilo específico */
+a[href*="mycart:cart_detail"] .badge {
+    background-color: var(--fg-secondary-color) !important;
+    /* Naranja para el carrito */
+    color: var(--fg-bg-white) !important;
+}
+
+
+/* ----- CLASES DE UTILIDAD (Puedes añadir más según necesites) ----- */
+.text-primary-custom {
+    /* Si quieres texto con tu color primario */
+    color: var(--fg-primary-color) !important;
+}
+
+.text-accent-custom {
+    /* Texto con tu color de acento */
+    color: var(--fg-secondary-color) !important;
+}
+
+.bg-primary-custom {
+    background-color: var(--fg-primary-color) !important;
+}
+
+.bg-accent-custom {
+    background-color: var(--fg-secondary-color) !important;
+}
+
+
+/* Hero Section / Carousel */
+.hero-section .carousel-item {
+    /* Altura por defecto para escritorio, puedes ajustar */
+    height: 450px; /* Una altura cómoda para banners de escritorio, similar a Falabella */
+    overflow: hidden; /* Muy importante para que object-fit: cover funcione bien */
+    position: relative; /* Mantener para el posicionamiento del caption */
+}
+/* Aplica a la imagen dentro de <picture> */
+.hero-section .carousel-item picture img { /* O .hero-section .carousel-item img si solo aplica a img directamente */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-section .carousel-item img {
+    width: 100%;
+    height: 100%; /* La imagen ocupa el 100% del alto de su padre (.carousel-item) */
+    object-fit: cover; /* ¡Esta es la clave para que no se desfigure y cubra el ancho! */
+    object-position: center; /* Centra la imagen dentro del contenedor */
+}
+
+.hero-section .carousel-caption {
+    bottom: 20%;
+    /* Ajusta la posición vertical del texto */
+    background-color: rgba(0, 0, 0, 0.3);
+    /* Fondo semitransparente para el texto */
+    padding: 1.5rem;
+    border-radius: 0.25rem;
+}
+
+.hero-section .carousel-caption h5 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    /* Texto blanco en el caption */
+}
+
+.hero-section .carousel-caption p {
+    font-size: 1.1rem;
+    color: #f8f9fa;
+    /* Texto ligeramente menos blanco */
+}
+
+/* Value Propositions */
+.value-propositions i.fs-2 {
+    /* color: var(--fg-primary-color); ya está en el html, se puede quitar de aquí */
+    margin-bottom: 0.5rem;
+}
+
+.value-propositions h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    /* Open Sans Semi-Bold */
+    color: var(--fg-text-dark);
+    /* No necesariamente el color primario */
+}
+
+/* Contenedor principal que oculta el scrollbar feo */
+.product-carousel-container {
+    position: relative;
+}
+
+/* El carrusel en sí */
+.product-carousel {
+    display: flex; /* ¡La clave para poner todo en una línea! */
+    overflow-x: auto; /* Permite el scroll horizontal */
+    scroll-snap-type: x mandatory; /* Hace que el scroll se "enganche" a cada producto */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    padding-bottom: 20px; /* Espacio para que el scrollbar no se pegue al contenido de abajo */
+    margin-bottom: -20px; /* Oculta ese padding para que el layout no se rompa */
+    gap: 1rem; /* Espacio entre cada tarjeta de producto (equivale a g-4) */
+}
+
+/* Ocultar la barra de scroll en navegadores que lo soportan */
+.product-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+.product-carousel {
+    -ms-overflow-style: none;  /* IE y Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Cada item (tarjeta) del carrusel */
+.carousel-item-product {
+    flex: 0 0 auto; /* No permite que los items se encojan o crezcan */
+    scroll-snap-align: start; /* El punto de "enganche" del scroll */
+    
+    /* Definimos el ancho de cada tarjeta */
+    width: 250px; /* Un buen tamaño para escritorio */
+}
+
+/* ============================================== */
+/*          AQUÍ ESTÁ LA MODIFICACIÓN             */
+/* ============================================== */
+
+/* Featured Categories */
+.featured-categories .category-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+    /* Para que la imagen no se salga al escalar */
+    border: 1px solid #e9ecef;
+}
+
+.featured-categories .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+}
+
+.featured-categories .category-card .card-img-top {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: #fff;
+}
+
+.featured-categories .category-card-title {
+    color: var(--fg-text-dark);
+    font-weight: 600;
+    /* Open Sans Semi-Bold */
+    font-size: 1rem;
+}
+
+.featured-categories .category-card:hover .category-card-title {
+    color: var(--fg-primary-color);
+}
+/* ============================================== */
+/*          FIN DE LA MODIFICACIÓN                */
+/* ============================================== */
+
+
+/* Promo Banner Secondary */
+.promo-banner-secondary h3 {
+    font-family: var(--fg-font-primary);
+    color: #fff;
+}
+
+/* Testimonials */
+.testimonials img.rounded-circle {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 3px solid var(--fg-bg-white);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Newsletter Signup */
+.newsletter-signup {
+    background-color: var(--fg-bg-light);
+    /* Fondo claro para esta sección */
+}
+
+.newsletter-signup h3 {
+    color: var(--fg-text-dark);
+    /* No necesariamente el color primario */
+}
+
+/* -------------------- ARREGLADO -------------------- */
+
+/* PANEL IZQUIERDO: Categorías Nivel 1 */
+.main-categories-list {
+    background-color: var(--fg-bg-light);
+    padding: 0.5rem 0;
+    border-right: 1px solid #e0e0e0; /* Borde más sutil */
+    overflow-y: auto;
+    flex-shrink: 0; /* No se encoge */
+    height: 100%;   /* Ocupa toda la altura */
+    transition: transform 0.3s ease-in-out; /* Para móvil */
+    z-index: 10; /* Base */
+}
+.main-categories-list .nav-item .nav-link {
+    padding: 0.75rem 1.25rem; /* Más padding */
+    font-weight: 500;
+    color: var(--fg-text-dark);
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+.main-categories-list .nav-item .nav-link:hover { /* Solo para items sin submenu en escritorio */
+    background-color: var(--fg-bg-white);
+    color: var(--fg-primary-color);
+}
+.main-categories-list .nav-item.active-parent > .nav-link { /* Padre activo */
+    background-color: var(--fg-bg-white);
+    color: var(--fg-primary-color);
+    font-weight: 600;
+}
+.main-categories-list .nav-item.active-parent .icon-indicator {
+    transform: rotate(90deg);
+}
+.icon-indicator, .icon-indicator-lvl2 {
+    transition: transform 0.2s ease-in-out;
+    font-size: 0.8em;
+    color: var(--fg-text-muted);
+}
+.main-categories-list .nav-item.active-parent > .nav-link .icon-indicator,
+.main-categories-list .nav-item .nav-link:hover .icon-indicator {
+    color: var(--fg-primary-color);
+}
+
+
+/* PANEL DERECHO GENERAL: Contenedor de Paneles de Nivel 2 y 3 */
+.megamenu-panel {
+    background-color: var(--fg-bg-white);
+    overflow-y: auto; /* Scroll para el contenido del panel activo */
+    flex-grow: 1; /* Por defecto en escritorio, ocupa espacio restante */
+    height: 100%;
+    padding: 0; /* El padding estará en los content-panes */
+    transition: transform 0.3s ease-in-out; /* Para móvil */
+    z-index: 20; /* Encima de Nivel 1 en móvil */
+}
+
+/* PANELES DE CONTENIDO (Nivel 2 específico Y Nivel 3 específico) */
+.megamenu-content-pane, /* Contenido de una Cat Nivel 1 (con columnas de Nivel 2) */
+.level-3-pane {         /* Contenido de una Cat Nivel 2 (lista de Nivel 3) */
+    display: none;      /* Ocultos por defecto */
+    height: 100%;       /* Ocupan toda la altura del panel padre que los contiene */
+    overflow-y: auto;   /* Scroll si su contenido es largo */
+    padding-bottom: 70px; /* Espacio para el último ítem */
+}
+.megamenu-content-pane.active,
+.level-3-pane.active {
+    display: block !important; /* Mostrar el panel activo */
+}
+
+
+/* CABECERA DENTRO DE LOS PANELES DE CONTENIDO (Nivel 2 y Nivel 3) */
+.megamenu-content-pane .megamenu-header,
+.level-3-pane .megamenu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    background-color: var(--fg-bg-white); /* Para que no sea transparente si el panel scrollea */
+    position: sticky; /* Header fijo al scrollear dentro del panel */
+    top: 0;
+    z-index: 5; /* Encima del contenido scrolleable del panel */
+}
+.megamenu-header h4 {
+    margin: 0;
+    font-size: 1.2rem; /* Tamaño ajustado */
+    color: var(--fg-primary-color);
+    font-weight: 600;
+}
+.megamenu-header .view-all-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.btn-back-to-level1, .btn-back-to-level2 { /* Botones "Volver" */
+    border: none;
+    background: none;
+    color: var(--fg-primary-color);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem;
+    display: none; /* Ocultos por defecto, se muestran en móvil */
+}
+
+/* CONTENIDO DE NIVEL 2 (Columnas de categorías hijas) */
+.megamenu-content-pane .level-2-container .row {
+    padding: 1.5rem; /* Padding para las columnas de Nivel 2 */
+}
+.megamenu-column h5 { /* Título de Categoría Nivel 2 */
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+.megamenu-column h5 a.category-link {
+    font-family: var(--fg-font-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--fg-text-dark);
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+}
+.megamenu-column h5 a.category-link:hover {
+    color: var(--fg-primary-color);
+}
+.megamenu-column .category-level-2.active-parent-lvl2 > a.category-link {
+    color: var(--fg-primary-color); /* Resaltar Nivel 2 activo en móvil */
+}
+.megamenu-column .category-level-2.active-parent-lvl2 .icon-indicator-lvl2 {
+    transform: rotate(90deg);
+}
+
+/* CONTENIDO DE NIVEL 3 (Lista de categorías nietas) */
+.level-3-pane .subcategory-list-lvl3 {
+    padding: 1.5rem; /* Padding para la lista de Nivel 3 */
+}
+.subcategory-list-lvl3 li a {
+    padding: 0.6rem 0rem; /* Padding ajustado para items Nivel 3 */
+    display: block;
+    color: var(--fg-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0; /* Separador sutil */
+}
+.subcategory-list-lvl3 li:last-child a {
+    border-bottom: none;
+}
+.subcategory-list-lvl3 li a:hover {
+    color: var(--fg-primary-color);
+    background-color: var(--fg-bg-light);
+}
+
+/* --- Estilos Generales de la Sección --- */
+  .testimonials-section {
+    padding: 60px 0;
+    background-color: var(--color-bg-light);
+    font-family: var(--font-body);
+  }
+
+  .testimonials-section .section-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--color-text-dark);
+    margin-bottom: 2.5rem !important; /* Aumenta el espacio debajo del título */
+  }
+
+  /* --- Estilo de la Tarjeta de Testimonio --- */
+  .testimonial-card-modern {
+    background-color: var(--color-bg-white);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    overflow: hidden; /* Clave para que la imagen no rompa el border-radius */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .testimonial-card-modern:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+  }
+
+  /* --- Imagen del Producto --- */
+  .testimonial-product-image {
+    position: relative;
+    padding-top: 75%; /* Aspect ratio 4:3 */
+    overflow: hidden;
+    background-color: #eee;
+  }
+
+  .testimonial-product-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* <-- ESTO ES CLAVE: Hace que la imagen cubra el espacio sin estirarse, recortando si es necesario. */
+    object-position: center; /* Centra la imagen dentro del recorte. */
+    transition: transform 0.4s ease; /* Efecto de zoom suave */
+  }
+
+  .testimonial-card-modern:hover .testimonial-product-image img {
+    transform: scale(1.05);
+  }
+
+  /* --- Contenido del Testimonio --- */
+  .testimonial-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Permite que esta parte crezca para alinear el pie de página */
+  }
+
+  /* --- Cita del Cliente --- */
+  .testimonial-quote {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--color-text-dark);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--color-accent);
+    position: relative;
+    flex-grow: 1; /* Empuja al autor hacia abajo */
+  }
+  .testimonial-quote::before {
+    content: '“';
+    position: absolute;
+    left: -12px;
+    top: -20px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 4rem;
+    color: var(--color-accent);
+    opacity: 0.2;
+    line-height: 1;
+  }
+  
+  /* --- Autor del Testimonio --- */
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    margin-top: auto; /* Alinea al final si el contenido es corto */
+  }
+
+  .testimonial-author .author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 2px solid var(--color-bg-light);
+  }
+
+  .testimonial-author .author-name {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--color-text-dark);
+  }
+
+  /* --- Controles del Carrusel (Opcional, para mejorar el look) --- */
+  .testimonials-section .carousel-control-prev-icon,
+  .testimonials-section .carousel-control-next-icon {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    padding: 1.2rem;
+    background-size: 50% 50%;
+  }
+  .testimonials-section .carousel-indicators [data-bs-target] {
+    background-color: var(--color-accent);
+    opacity: 0.5;
+  }
+  .testimonials-section .carousel-indicators .active {
+    opacity: 1;
+  }
+
+/* ----- FOOTER ----- */
+footer.bg-dark {
+    /* Asumiendo que tu footer tiene la clase .bg-dark */
+    background-color: var(--fg-bg-dark) !important;
+    /* Asegurar el fondo oscuro */
+    color: var(--fg-text-light);
+    font-size: 0.9rem;
+}
+
+footer h5 {
+    color: var(--fg-bg-white);
+    /* Encabezados del footer en blanco */
+    font-family: var(--fg-font-primary);
+    font-weight: 500;
+    /* Montserrat Medium */
+}
+
+footer a.text-white-50 {
+    color: #adb5bd !important;
+    /* Un gris claro para enlaces del footer */
+    transition: color 0.2s ease-in-out;
+}
+
+footer a.text-white-50:hover {
+    color: var(--fg-bg-white) !important;
+    /* Blanco al pasar el mouse */
+    text-decoration: none;
+}
+
+footer hr {
+    border-top-color: var(--fg-text-muted);
+}
+
+.footer-logo {
+    height: 60px;  /* Una altura cómoda y visible para el footer */
+    width: auto;   /* El ancho se ajustará automáticamente para no deformar el logo */
+}
+
+/* Estilos para asegurar que el footer se quede abajo (ya está en base.html pero por si acaso) */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main.flex-grow-1 {
+    /* Asigna esta clase a tu <main> si no la tiene */
+    flex-grow: 1;
+}
+
+.choice-banner-container {
+    display: none; /* Oculto por defecto, JavaScript lo mostrará */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #212529; /* Usamos tu color --fg-text-dark */
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1056; /* Un z-index alto, por encima de offcanvas (1045) y modals (1055) */
+    text-align: center;
+    font-family: var(--fg-font-secondary);
+    max-width: 90%;
+    width: 480px;
+    transition: opacity 0.3s ease, bottom 0.3s ease;
+}
+
+.banner-content p {
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    font-family: var(--fg-font-primary);
+    font-weight: 500;
+}
+
+.banner-buttons button {
+    background-color: var(--fg-primary-color); /* Usamos tu color primario */
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    margin: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: var(--fg-font-primary);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-flex;   /* Añade esto */
+    align-items: center;    /* Añade esto */
+    justify-content: center;/* Añade esto */
+}
+
+.banner-buttons button:hover {
+    transform: translateY(-2px);
+    background-color: #0B5ED7; /* Versión más oscura de tu primario */
+}
+
+#select-patrona {
+    background-color: #e74c3c; /* Un rojo/rosa para diferenciar */
+}
+#select-patrona:hover {
+    background-color: #c0392b;
+}
+
+.banner-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: 300;
+    color: #777;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+.banner-close-btn:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+/* El espacio antes del saludo se añade con CSS para no tener que ponerlo en JS */
+.user-title:not(:empty)::before {
+    content: ', '; /* ¡OJO! Añadimos una coma y un espacio, queda más natural */
+}
+
+/* --- Iconos de Redes Sociales --- */
+.social-icon-link {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icon-link:hover {
+    color: #FFFFFF !important; /* Blanco puro al pasar el mouse */
+    transform: translateY(-3px); /* Efecto de que se levanta un poquito */
+}
+
+/* --- Iconos de Redes Sociales (se mantiene igual) --- */
+.social-icon-link {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icon-link:hover {
+    color: #FFFFFF !important;
+    transform: translateY(-3px);
+}
+
+
+/* --- Logos de Métodos de Pago (NUEVA VERSIÓN) --- */
+.payment-logo {
+    height: 25px; /* Define una altura fija y cómoda */
+    width: auto;  /* El ancho se ajustará automáticamente manteniendo la proporción */
+    background-color: white; /* Fondo blanco por si acaso */
+    border-radius: 4px; /* Bordes ligeramente redondeados */
+    padding: 2px; /* Un pequeño espacio interno */
+}
+
+.mobile-bottom-nav {
+    display: none; /* Oculta por defecto en escritorio */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030; /* Encima de casi todo */
+    
+    background-color: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+
+    /* Usamos flexbox para distribuir los botones */
+    justify-content: space-around;
+    padding: 5px 0;
+}
+
+/* Estilos para cada botón de la barra */
+.nav-item-mobile {
+    display: flex;
+    flex-direction: column; /* Icono arriba, texto abajo */
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Ocupa el espacio disponible */
+    
+    font-size: 0.75rem; /* Texto pequeño */
+    color: #495057;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Estilo para el icono */
+.nav-item-mobile i {
+    font-size: 1.4rem; /* Tamaño del icono */
+    margin-bottom: 2px;
+}
+
+/* Efecto al presionar un botón */
+.nav-item-mobile:active {
+    color: var(--fg-primary-color);
+}
+
+/* Estilo para el botón que queremos resaltar */
+.nav-item-mobile.highlight {
+    color: var(--fg-primary-color); /* Usa el color primario de tu página */
+    font-weight: 600; /* Opcional: un poco más de grosor en el texto */
+}
+
+/* Efecto al presionar cualquier botón (se mantiene) */
+.nav-item-mobile:active {
+    color: var(--fg-primary-color);
+}
+
+/* Contenedor general para el scroll horizontal */
+.horizontal-scroll-mobile {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem; /* Espacio entre items */
+    padding-bottom: 1rem; /* Espacio para que el scrollbar no se pegue */
+    margin-bottom: -1rem; /* Compensa el padding */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+/* Ocultar la barra de scroll */
+.horizontal-scroll-mobile::-webkit-scrollbar {
+    display: none;
+}
+.horizontal-scroll-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* --- Estilos para los items de BENEFICIOS --- */
+.item-benefit {
+    flex: 0 0 130px; /* Ancho fijo para cada beneficio */
+    padding: 1rem;
+    background-color: #f8f9fa; /* bg-light de Bootstrap */
+    border-radius: 0.25rem; /* rounded de Bootstrap */
+    text-align: center;
+    scroll-snap-align: start;
+}
+.item-benefit i {
+    font-size: 1.8rem;
+    color: var(--fg-primary-color);
+}
+.item-benefit h5 {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+.item-benefit p {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+
+/* --- Estilos para los items de CATEGORÍAS --- */
+.item-category {
+    flex: 0 0 160px; /* Ancho fijo para cada categoría */
+    scroll-snap-align: start;
+}
+.item-category .category-card-title {
+    font-size: 0.9rem;
+}
+
+
+
+/* -------------------- RESPONSIVE -------------------- */
+
+/* --- MÓVIL (Debajo de lg) --- */
+@media (max-width: 991.98px) {
+    .offcanvas-start { width: 100%; max-width: 100%; }
+
+    .main-categories-list.is-hidden-left { transform: translateX(-100%); }
+    .main-categories-list.is-hidden-far-left { transform: translateX(-200%); }
+
+    .megamenu-panel {
+        transform: translateX(100%); /* Oculto a la derecha */
+    }
+    .megamenu-panel.is-visible { transform: translateX(0%); } /* Nivel 2 visible */
+    .megamenu-panel.is-hidden-left { transform: translateX(-100%); } /* Nivel 2 oculto a la izquierda (Nivel 3 visible) */
+
+    /* Cuando un panel de Nivel 3 está activo, el contenedor de Nivel 2 (columnas) se oculta */
+    .megamenu-content-pane.has-level-3-active .level-2-container {
+        display: none;
+    }
+
+    .level-3-pane {
+        transform: translateX(100%); /* Oculto a la derecha */
+    }
+    .level-3-pane.active { /* La clase 'active' la pone el JS para mostrarlo */
+        transform: translateX(0%);
+    }
+
+    .btn-back-to-level1, .btn-back-to-level2 {
+        display: inline-flex !important; /* Asegurar visibilidad de botones "volver" */
+        align-items: center;
+        gap: .3rem;
+    }
+    .megamenu-header h4.d-none.d-lg-block { display: none !important; }
+    .megamenu-column .subcategory-list.d-lg-block { display: none !important; } /* Ocultar Nivel 3 en columnas N2 en móvil */
+
+    .hero-section .carousel-item {
+        height: 250px; /* Una altura más reducida para móviles, para que no ocupe demasiado espacio */
+        /* O si quieres que ocupe más altura en móvil: height: 40vh; */
+    }
+    /* Ajustes para el caption en móviles para que sea legible */
+    .hero-section .carousel-caption {
+        padding-bottom: 1rem; /* Menos padding en móviles */
+        left: 10%;
+        right: 10%;
+        text-align: center; /* Centrar el texto en móviles puede verse mejor */
+        background-color: rgba(0, 0, 0, 0.4); /* Fondo semi-transparente para mejorar contraste */
+        border-radius: 5px;
+        max-width: 90%; /* Limitar ancho del caption */
+        margin: auto; /* Centrar el bloque del caption */
+        bottom: 15px; /* Ajustar posición vertical */
+    }
+    .hero-section .carousel-caption h5 {
+        font-size: 1.2em; /* Título más pequeño */
+        margin-bottom: 0.2rem;
+    }
+    .hero-section .carousel-caption p {
+        font-size: 0.8em; /* Párrafo más pequeño */
+        display: none; /* Ocultar el subtítulo en móviles pequeños para no saturar */
+    }
+    .hero-section .carousel-caption .btn {
+        font-size: 0.8em; /* Botón más pequeño */
+        padding: 0.4rem 0.8rem;
+    }
+
+        .testimonial-card {
+        padding: 2rem;
+        text-align: center; /* Centramos todo en móvil */
+    }
+
+    .testimonial-text {
+        font-size: 1.05rem;
+    }
+
+    .testimonials-section .row {
+        flex-direction: column-reverse; 
+    }
+        
+    .mobile-bottom-nav {
+        display: flex; 
+    }
+
+    /* Creamos un espacio abajo para que el contenido no quede tapado por la barra */
+    body {
+        padding-bottom: 70px;
+    }
+    .fg-navbar .navbar-brand.fg-navbar-brand {
+        /* Eliminamos el padding que le da espacio extra a los lados */
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-right: 0;
+        
+        /* Le dejamos un pequeño margen a la derecha para que no se pegue a la búsqueda */
+        margin-right: 0.5rem; /* Ajusta este valor si lo quieres más cerca o lejos */
+    }
+}
+
+/* Estilos para escritorio se mantienen (hover para Nivel 2) */
+@media (min-width: 992px) {
+    .fg-search-bar-responsive {
+        flex-grow: 1; /* Le permitimos crecer para ocupar el espacio central */
+        flex-basis: auto; /* Reseteamos el ancho base */
+        max-width: 600px; /* Le ponemos el límite de ancho para escritorio */
+    }
+
+    .horizontal-scroll-mobile {
+    display: none;
+    }
+    
+    .hero-section .carousel-caption {
+        left: 15%; /* Ajusta si quieres el texto más a la izquierda */
+        right: auto; /* Deshacer el 'text-end' si estaba */
+        text-align: left; /* Alineación del texto del caption */
+        padding-bottom: 3rem; /* Margen inferior para el caption */
+    }
+    
+    .main-menu-container-wrapper {
+        /* En escritorio, el wrapper no necesita ser relativo si el megamenú es hijo del li */
+        /* Pero si mantenemos la estructura de paneles hermanos, el JS y CSS de escritorio deben ajustarse */
+    }
+    .menu-panel { /* Resetear para escritorio si el megamenú se muestra de otra forma */
+        position: static;
+        transform: none;
+        overflow-y: visible;
+        height: auto;
+        padding-bottom: 0;
+    }
+    .menu-panel.level-1 {
+        width: 280px;
+        flex-shrink: 0;
+        height: 100%;
+        overflow-y: auto;
+        border-right: 1px solid #dee2e6;
+    }
+    .menu-panel.level-2, .menu-panel.level-3 {
+        /* Estos se manejarían con la lógica de hover y el panel flotante a la derecha */
+        /* Este CSS es para el comportamiento MÓVIL, el de escritorio necesitaría
+           el .megamenu-panel posicionado absolutamente al lado. */
+        display: none; /* Ocultar paneles L2/L3 que son para móvil en escritorio */
+    }
+
+    /* Aquí necesitarías tu CSS de escritorio que muestra el megamenú al lado */
+    /* Este es el CSS que tenías para el hover de escritorio: */
+    .megamenu-panel-desktop-version { /* Necesitarías un contenedor diferente para esto en el HTML, o el JS lo crea */
+        display: none; 
+        position: absolute;
+        left: 280px;   
+        top: 0;        
+        bottom: 0;     
+        width: 600px;  
+        max-width: calc(100vw - 280px - 1rem); 
+        background-color: var(--fg-bg-white);
+        border-left: 1px solid #ddd; 
+        box-shadow: 3px 0px 10px rgba(0,0,0,0.1);
+        z-index: 1050; 
+        overflow-y: auto;
+        border-radius: 0px 8px 8px 0px; 
+    }
+    .megamenu-panel-desktop-version.is-visible { display: block !important;margin-top: 73px;
+        padding: 24px 8px 64px 32px; }
+    .megamenu-panel-desktop-version .megamenu-content-pane { display: none; padding: 1.5rem; }
+    .megamenu-panel-desktop-version .megamenu-content-pane.active { display: block !important; }
+
+
+}
+
+/* Opcional: Ocultar el caption completamente en dispositivos muy pequeños */
+@media (max-width: 575.98px) { /* Extra small devices (phones) */
+    .hero-section .carousel-caption {
+        display: none !important; /* Oculta completamente el texto en pantallas muy pequeñas */
+    }
+}
+
+
+ /* --- Estilos para Móviles --- */
+@media (max-width: 767.98px) {
+    .testimonial-card-modern {
+      margin-bottom: 1.5rem;
+    }
+    .testimonials-section {
+      padding: 40px 0;
+    }
+     .carousel-item-product {
+        width: 65%; /* Ocupa el 65% del ancho de la pantalla */
+    }
+}

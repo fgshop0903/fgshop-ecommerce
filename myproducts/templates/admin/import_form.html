@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <fieldset class="module aligned">
+      <h2>Instrucciones</h2>
+      <div class="form-row">
+        <p>Sube un archivo Excel (.xlsx) con los productos y sus variantes.</p>
+        <p>Asegúrate de que las columnas coincidan con la plantilla: <strong>product_nombre, product_descripcion, product_categoria, product_brand, product_supplier, product_precio_base, attr_Color, attr_Talla, variante_precio, variante_stock</strong>, etc.</p>
+      </div>
+    </fieldset>
+
+    <fieldset class="module aligned">
+      <h2>Subir Archivo</h2>
+      {% if form.errors %}
+        <p class="errornote">Por favor, corrige los errores.</p>
+      {% endif %}
+      
+      <div class="form-row">
+        {{ form.file.errors }}
+        <label for="{{ form.file.id_for_label }}">{{ form.file.label }}:</label>
+        {{ form.file }}
+        <div class="help">{{ form.file.help_text }}</div>
+      </div>
+    </fieldset>
+
+    <div class="submit-row">
+      <input type="submit" value="Importar Productos" class="default">
+    </div>
+  </form>
+</div>
+{% endblock %}

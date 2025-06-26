@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina|default:"Editar Perfil" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>{{ titulo_pagina|default:"Editar Mi Perfil" }}</h2>
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                
+                <h4>Datos Personales (Usuario)</h4>
+                {{ form2|crispy }} {# form2 es UserUpdateForm #}
+                
+                <h4 class="mt-4">Datos Adicionales (Perfil)</h4>
+                {{ form|crispy }} {# form es CustomerProfileForm #}
+
+                <button type="submit" class="btn btn-primary mt-4">Guardar Cambios</button>
+                <a href="{% url 'mycustomers:profile_detail_self' %}" class="btn btn-outline-secondary mt-4">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

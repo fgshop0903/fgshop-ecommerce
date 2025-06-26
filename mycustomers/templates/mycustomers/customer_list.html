@@ -1,0 +1,45 @@
+{% extends "core/base.html" %}
+
+{% block title %}Listado de Clientes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Listado de Clientes</h2>
+    <hr>
+    
+    {% if profiles %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Nombre Completo</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">DNI</th>
+                    <th scope="col">Teléfono</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in profiles %}
+                <tr>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.user.get_full_name|default:"--" }}</td>
+                    <td>{{ profile.user.email }}</td>
+                    <td>{{ profile.DNI|default:"--" }}</td>
+                    <td>{{ profile.telefono|default:"--" }}</td>
+                    <td>
+                        <a href="{% url 'mycustomers:customer_detail_admin' username=profile.user.username %}" class="btn btn-sm btn-info">Ver Perfil</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>No hay clientes registrados.</p>
+    {% endif %}
+
+    {# Aquí podrías añadir la paginación si la tienes configurada en tu base.html #}
+</div>
+{% endblock %}

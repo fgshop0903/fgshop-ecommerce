@@ -1,0 +1,417 @@
+/* myproducts/css/product_detail.css */
+
+/* --- FUENTES Y GENERAL --- */
+/* Importa FontAwesome si aún no lo tienes en tu base.html, para los iconos */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
+
+body {
+    background-color: #f8f9fa; /* Un fondo gris claro para que el contenido resalte */
+
+
+.breadcrumb {
+    font-size: 0.85rem; /* ¡Esta es la clave! Reducimos el tamaño de la fuente */
+    margin-bottom: 1rem !important; /* Reducimos el espacio que deja debajo */
+}
+
+/* Opcional: Reducir el espacio alrededor del separador '/' */
+.breadcrumb-item + .breadcrumb-item::before {
+    padding: 0 0.3rem; /* Menos espacio a los lados del slash */
+}
+
+.product-detail-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.product-brand-link {
+    color: #007bff; /* Color azul de Bootstrap, cámbialo por el color de tu página principal */
+    text-decoration: none;
+    font-weight: 600;
+}
+.product-brand-link:hover {
+    text-decoration: underline;
+}
+
+/* --- GALERÍA DE IMÁGENES --- */
+#main-product-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+}
+
+.gallery-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: none; /* JS los mostrará si hay >1 imagen */
+}
+.gallery-nav-btn.start-0 { left: 10px; }
+.gallery-nav-btn.end-0 { right: 10px; }
+
+#thumbnail-container img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    background-color: #fff;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease-in-out;
+}
+
+#thumbnail-container img:hover {
+    opacity: 1;
+    border-color: #007bff;
+}
+
+#thumbnail-container img.active {
+    opacity: 1;
+    border-color: #343a40; /* Borde oscuro para la miniatura activa */
+}
+
+#thumbnail-container {
+    /* Esta línea es la única que necesitas para centrar las imágenes */
+    justify-content: center;
+}
+
+/* --- INFORMACIÓN DEL PRODUCTO (DERECHA) --- */
+.text-uppercase.text-muted a {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+
+#variant-price {
+    color: #dc3545; /* Color rojo de oferta, como en la imagen de referencia */
+}
+
+#variant-discount-badge {
+    vertical-align: middle;
+    font-size: 0.8rem;
+    display: none; /* JS lo mostrará */
+}
+
+.price-section #variant-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40;
+}
+
+.price-section #variant-base-price {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+/* --- SELECTORES DE VARIANTES --- */
+.variant-swatch {
+    border: 1px solid #ccc;
+    transition: all 0.2s ease-in-out;
+    min-width: 45px;
+    padding: 0.375rem 0.75rem;
+    background-color: #fff;
+    color: #333;
+}
+
+/* Estilos para Swatches de Color */
+.variant-swatch.color {
+    width: 50px; /* Un poco más grande para que se vea mejor */
+    height: 50px;
+    border-radius: 4px; /* <--- Bordes ligeramente redondeados, como en la referencia */
+    padding: 2px;
+    border-width: 2px;
+}
+
+.variant-swatch.color img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
+/* Estilos para Botones de Talla */
+.variant-swatch.size {
+    border-radius: 4px;
+}
+
+/* --- ESTADOS DE LOS SELECTORES --- */
+
+/* Botón seleccionado */
+.variant-swatch.selected {
+    border-color: #343a40; /* Borde oscuro para el seleccionado */
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #343a40;
+}
+
+/* Botón deshabilitado */
+.variant-swatch:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    position: relative;
+    overflow: hidden;
+}
+
+.variant-swatch:disabled::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -10%;
+    width: 120%;
+    height: 1.5px;
+    background: #ccc;
+    transform: rotate(-45deg);
+}
+
+/* --- CANTIDAD Y BOTÓN DE COMPRA --- */
+#quantity-input {
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+}
+
+#add-to-cart-btn {
+    padding: 0.75rem 1rem;
+    transition: background-color 0.2s;
+}
+
+#add-to-cart-btn:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* --- INFORMACIÓN DE ENTREGA --- */
+.delivery-info-box {
+    background-color: #f8f9fa !important;
+}
+
+.supplier-info {
+    font-size: 0.9rem;
+}
+.supplier-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #0d6efd; /* Un azul link estándar */
+    font-weight: 500;
+}
+.supplier-link:hover {
+    text-decoration: underline;
+}
+.supplier-logo {
+    height: 20px;
+    width: auto;
+    max-width: 80px;
+    margin-right: 8px;
+    object-fit: contain;
+}
+
+.supplier-name {
+    /* Este span se comportará correctamente dentro del flexbox del enlace <a> */
+    line-height: 1; /* Ayuda a alinear perfectamente con el logo */
+}
+
+/* Estilos para la caja de cuotas */
+.installments-box {
+    background-color: #e7f3ff; /* Un azul claro suave */
+    border: 1px solid #b3d7ff;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    margin-top: -0.5rem; /* Pégalo un poco más al precio */
+    margin-bottom: 1rem;
+}
+.installments-box p {
+    margin: 0;
+}
+
+/* ============================================== */
+/* --- ESTILOS PARA PESTAÑAS Y ESPECIFICACIONES --- */
+/* ============================================== */
+
+/* Contenedor de las pestañas de navegación */
+.product-info-tabs {
+    border-bottom: 2px solid #dee2e6; /* Línea base más gruesa */
+}
+
+.product-info-tabs .nav-link {
+    color: #6c757d; /* Color de texto gris para pestañas inactivas */
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent; /* Espacio para el indicador activo */
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -2px; /* Alinea el borde inferior con la línea base */
+    transition: all 0.2s ease-in-out;
+}
+
+.product-info-tabs .nav-link:hover {
+    color: #343a40; /* Color de texto más oscuro al pasar el ratón */
+    border-bottom-color: #ced4da; /* Indicador sutil al pasar el ratón */
+}
+
+/* Estilo para la pestaña activa */
+.product-info-tabs .nav-link.active {
+    color: #0d6efd; /* Color primario de tu marca */
+    font-weight: 600;
+    border-color: #0d6efd; /* El indicador de la pestaña activa */
+    background-color: transparent;
+}
+
+/* Contenedor del contenido de las pestañas */
+.tab-content {
+    background-color: #fff;
+    border-color: #dee2e6 !important; /* Asegura que el borde coincida con la línea de las pestañas */
+    border-radius: 0 0 0.25rem 0.25rem; /* Redondea las esquinas inferiores */
+}
+
+/* Estilo para el texto de la descripción */
+.prose {
+    line-height: 1.7;
+    color: #495057;
+}
+
+/* --- Estilos para la tabla de especificaciones (ya los tienes, pero confirmamos) --- */
+.specifications-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 0.9rem;
+}
+
+.spec-row {
+    display: contents;
+}
+
+.spec-property-name,
+.spec-property-value {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.specifications-grid .spec-row:nth-child(odd) > div {
+    background-color: #f8f9fa;
+}
+
+.specifications-grid .spec-row:last-child > div {
+    border-bottom: none;
+}
+
+.spec-property-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.spec-property-value {
+    color: #212529;
+}
+
+/* =================================================================== */
+/* --- ESTILOS ADICIONALES PARA LA VISTA MÓVIL DE ESPECIFICACIONES --- */
+/* =================================================================== */
+
+/* Hacemos que la navegación de pestañas ocupe todo el ancho en móvil */
+.product-info-tabs.nav-tabs {
+    flex-wrap: nowrap;
+    justify-content: space-around;
+}
+.product-info-tabs .nav-item {
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* En móvil, la 'tabla' de especificaciones no usará grid */
+.specifications-grid-mobile {
+    font-size: 0.9rem;
+}
+
+.spec-row-mobile {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.specifications-grid-mobile .spec-row-mobile:last-child {
+    border-bottom: none;
+}
+
+.spec-property-name-mobile {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.spec-property-value-mobile {
+    color: #6c757d;
+}
+
+/* Estilo para el enlace de la guía de tallas */
+.my-3 a.small {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.my-3 a.small:hover {
+    text-decoration: underline !important;
+}
+
+/* Ajustes para el iframe en el modal */
+.modal-body iframe {
+    display: block; /* Asegura que no haya espacios extraños */
+}
+
+/* Quitar el padding del cuerpo del modal SOLO cuando el iframe es visible */
+.modal-body .d-lg-block {
+    /* Si el iframe tiene un pequeño margen, esto puede ayudar */
+    margin: -1rem; /* Ajusta esto si es necesario para contrarrestar el padding del modal-body */
+}
+
+/* Asegurar que el iframe ocupe todo el espacio disponible */
+.modal-body .d-lg-block iframe {
+    display: block;
+    width: 100%;
+    height: 60vh; /* Usar altura relativa a la ventana para mejor adaptabilidad */
+}
+
+@media (max-width: 991.98px) {
+    
+    /* Le damos un espacio superior a la columna de la galería 
+       SOLO cuando está en vista móvil (es decir, cuando es la segunda en el orden) */
+    .order-2 {
+        margin-top: 1.5rem; /* 1.5rem equivale a unos 24px, ajústalo a tu gusto */
+    }
+
+    #main-product-image {
+        max-height: 400px; /* Opcional: ajusta la altura máxima en móvil */
+    }
+
+    h1.h2 {
+        font-size: 1.5rem; /* Opcional: ajusta el tamaño del título en móvil */
+    }
+}
+
+/* Responsive Adjustments (Bootstrap handles a lot, add specifics if needed) */
+@media (max-width: 767.98px) {
+    #main-product-image-new {
+        max-height: 350px; /* Adjust for smaller screens */
+    }
+    .product-info-new .product-name-new {
+        font-size: 1.5rem; /* Slightly smaller title on mobile */
+    }
+    .price-section #product-price-new {
+        font-size: 1.75rem;
+    }
+}
+
+}
+/* Ensure Bootstrap icons are available */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css");

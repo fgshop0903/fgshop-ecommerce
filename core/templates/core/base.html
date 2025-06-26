@@ -1,0 +1,403 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}FG Shop {% endblock %}</title>
+    <link href="{% static 'core/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="{% static 'core/css/custom_styles.css' %}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Open+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="{% static 'core/img/logoMovilN_fgshop.png' %}" type="image/x-icon">
+
+{% block extra_head %}{% endblock %}
+
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <div id="choice-banner" class="choice-banner-container">
+        <div class="banner-content">
+            <span class="banner-close-btn" id="close-banner">×</span>
+            <p>Para darte el trato que mereces, ¿cómo te llamamos?</p>
+            <div class="banner-buttons">
+                <button id="select-patrona">
+                    <i class="bi bi-person-workspace me-2"></i>Soy la Patrona
+                </button>
+                <button id="select-king">
+                    <i class="bi bi-gem me-2"></i>Llámame 'mi Rey'
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <header id="main-header" class="sticky-top">
+        <nav class="navbar navbar-light bg-light shadow-sm fg-navbar">
+            <div class="container-fluid">
+
+                <!-- Contenedor Izquierdo: Menú Hamburguesa (SOLO ESCRITORIO) y Logos Responsivos -->
+                <div class="d-flex align-items-center">
+                    
+                    <button class="navbar-toggler me-2 d-none d-lg-block" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <a class="navbar-brand fg-navbar-brand" href="{% url 'core:home' %}">
+                        <!-- Logo para ESCRITORIO -->
+                        <img src="{% static 'core/img/logo_fgshop.png' %}" alt="FG Shop Logo" class="fg-logo-img d-none d-lg-block">
+                        
+                        <!-- ¡NUEVO! Logo para MÓVIL con clase específica -->
+                        <img src="{% static 'core/img/logoMovilN_fgshop.png' %}" alt="FG Shop Logo" class="fg-logo-img fg-logo-mobile d-lg-none">
+                    </a>
+                </div>
+
+                <!-- Barra de Búsqueda (se mantiene igual, se adapta sola) -->
+                <div class="fg-search-bar-responsive mx-auto">
+                    <form class="d-flex w-100" method="GET" action="{% url 'myproducts:product_search' %}">
+                        <input class="form-control me-2" type="search" name="q" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+
+            <!-- Contenedor Derecho: Iconos -->
+            <div class="d-flex align-items-center fg-navbar-icons">
+                <div class="d-none d-lg-flex align-items-center"> {# Visible solo en pantallas 'lg' y más grandes #}
+                    {% if user.is_authenticated %}
+                        <div class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle fg-icon-link" href="#" id="navbarDropdownUsuario" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.username }}">
+                                <i class="bi bi-person-circle fs-5"></i>
+                                <span class="d-none d-md-inline small ms-1">
+                                    Hola, {% if user.customerprofile.get_title %}{{ user.customerprofile.get_title }}{% else %}{{ user.username }}{% endif %}
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUsuario">
+                                <li><span class="dropdown-item-text small">Hola, {{ user.username }}</span></li>
+                                <li><a class="dropdown-item" href="{% url 'mycustomers:profile_detail_self' %}">Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">Cerrar Sesión</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a class="nav-link ms-2 fg-icon-link" href="{% url 'account_login' %}" title="Iniciar Sesión / Registrarse">
+                            <i class="bi bi-person fs-5"></i>
+                            <span id="login-greeting-text" class="d-none d-md-inline small ms-1">Hola, Inicia sesión</span>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- El carrito va FUERA del div de "Mi Cuenta" pero DENTRO del contenedor de iconos -->
+                <a class="nav-link ms-lg-2 fg-icon-link position-relative" href="{% url 'mycart:cart_detail' %}">
+                    <i class="bi bi-cart3 fs-5"></i>
+                    {% if cart and cart|length > 0 %}
+                        <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle fg-cart-badge">{{ cart|length }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div> 
+    </nav>
+</header>
+
+        {# Modal de Búsqueda para Móvil (opcional, si prefieres no tener la barra siempre visible) #}
+        <div class="modal fade" id="searchModalMobile" tabindex="-1" aria-labelledby="searchModalMobileLabel" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen-sm-down">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="searchModalMobileLabel">Buscar Productos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    {# Modal de Búsqueda para Móvil ... #}
+                    <div class="modal-body">
+                        <form class="d-flex w-100" method="GET" action="{% url 'myproducts:product_search' %}">
+                            <input class="form-control form-control-lg me-2" type="search" name="q" placeholder="¿Qué estás buscando?" aria-label="Buscar" value="{{ request.GET.q }}">
+                            <button class="btn btn-primary" type="submit">Buscar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {% block full_width_content %}
+    {% endblock %}
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title d-flex align-items-center" id="offcanvasNavbarLabel">
+                {% if user.is_authenticated %}
+                    {# --- NUEVA LÓGICA MEJORADA --- #}
+                    {# Primero, revisamos si tiene un título personalizado #}
+                    {% if user.customerprofile.get_title %}
+                        {# Si tiene título: "Hola, mi King Diego" #}
+                        <span class="fw-bold" style="font-size: 1.2rem; color: var(--fg-primary-color);">
+                            Hola, {{ user.customerprofile.get_title }} {{ user.first_name|default:user.username }}
+                        </span>
+                    {% else %}
+                        {# Si no tiene título (ej. un usuario antiguo), saludamos por nombre: "Hola, Diego" #}
+                        <span class="fw-bold" style="font-size: 1.2rem; color: var(--fg-primary-color);">
+                            Hola, {{ user.first_name|default:user.username }}
+                        </span>
+                    {% endif %}
+                {% else %}
+                    {# SISTEMA JS PARA ANÓNIMOS (se mantiene igual) #}
+                    <a id="offcanvas-logo-link" class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'core:home' %}">
+                        <img src="{% static 'core/img/logo_fgshop.png' %}" alt="FG Shop Logo" class="fg-logo-img me-2" style="height: 30px;">
+                    </a>
+                    <span id="offcanvas-greeting" class="d-none fw-bold" style="font-size: 1.2rem; color: var(--fg-primary-color);">
+                        Hola<span class="user-title"></span>
+                    </span>
+                {% endif %}
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-0">
+            <div class="main-menu-container-wrapper">
+                {# PANEL NIVEL 1 (Categorías Padre) #}
+                <div class="menu-panel level-1 active"> {# 'active' para mostrarlo por defecto #}
+                    <div class="offcanvas-header-custom"> {# Header personalizado para Nivel 1 #}
+                        <h5 class="offcanvas-title">Categorías</h5>
+                        {# No hay botón "Volver" en Nivel 1 #}
+                    </div>
+                    <ul class="list-unstyled main-categories-list-nav">
+                        <li class="nav-item-custom"><a class="nav-link-custom" href="{% url 'myproducts:sale_list' %}">Oportunidades Únicas <span class="badge bg-danger">SALE</span></a></li>
+                        <hr class="my-1">
+                        {% for category1 in main_categories_for_menu %}
+                            <li class="nav-item-custom {% if category1.subcategorias.all %}has-submenu{% endif %}" 
+                                data-bs-toggle="offcanvas-panel" data-bs-target="#panel-{{ category1.slug }}">
+                                <a href="{{ category1.get_absolute_url }}" class="nav-link-custom d-flex justify-content-between align-items-center">
+                                    {{ category1.nombre }}
+                                    {% if category1.subcategorias.all %}<i class="bi bi-chevron-right"></i>{% endif %}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        <hr class="my-1">
+                        <div class="offcanvas-footer text-center p-3 border-top">
+                            <a class="navbar-brand fg-navbar-brand" href="{% url 'core:home' %}">
+                                <img src="{% static 'core/img/logo_fgshop.png' %}" alt="FG Shop" style="max-height: 35px;">
+                            </a>
+                        </div>
+                        </div>
+                        <div class="offcanvas-body">
+                            <ul class="main-categories-list-nav">
+                    </ul>
+                </div>
+
+                {# PANELES PARA NIVEL 2 (Categorías Hijas) #}
+                {% for category1_pane in main_categories_for_menu %}
+                    {% if category1_pane.subcategorias.all %}
+                    <div class="menu-panel level-2" id="panel-{{ category1_pane.slug }}"> {# Oculto por defecto #}
+                        <div class="offcanvas-header-custom">
+                            <button type="button" class="btn-back-offcanvas me-2" data-bs-target-level="1"><i class="bi bi-chevron-left"></i></button>
+                            <h5 class="offcanvas-title text-truncate">{{ category1_pane.nombre }}</h5>
+                        </div>
+                        <ul class="list-unstyled subcategories-list-nav">
+                            <li><a class="nav-link-custom fw-bold" href="{{ category1_pane.get_absolute_url }}">Ver todo en {{ category1_pane.nombre }}</a></li>
+                            <hr class="my-1">
+                            {% for category2 in category1_pane.subcategorias.all %}
+                                <li class="nav-item-custom {% if category2.subcategorias.all %}has-submenu{% endif %}"
+                                    {% if category2.subcategorias.all %} {# Este data-bs-toggle es para la navegación móvil al panel L3 #}
+                                    data-bs-toggle="offcanvas-panel" data-bs-target="#panel-{{ category2.slug }}"
+                                    {% endif %}>
+                                    <a href="{{ category2.get_absolute_url }}" class="nav-link-custom d-flex justify-content-between align-items-center">
+                                        {{ category2.nombre }}
+                                        {# El icono de flecha sigue siendo para indicar que hay un Nivel 3 (para móvil) #}
+                                        {% if category2.subcategorias.all %}<i class="bi bi-chevron-right"></i>{% endif %}
+                                    </a>
+                                    {# --- INICIO: NUEVA SECCIÓN PARA CATEGORÍAS NIETAS (Solo visible en desktop dentro de Nivel 2) --- #}
+                                    {% if category2.subcategorias.all %}
+                                        <ul class="list-unstyled grandchild-categories-list mt-1 mb-0 py-1 d-none d-lg-block">
+                                            {% for category3_inline in category2.subcategorias.all %}
+                                                <li class="grandchild-category-item">
+                                                    <a href="{{ category3_inline.get_absolute_url }}" class="nav-link-grandchild">
+                                                        {{ category3_inline.nombre }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                    {# --- FIN: NUEVA SECCIÓN PARA CATEGORÍAS NIETAS --- #}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                {# PANELES PARA NIVEL 3 (Categorías Nietas) - ESTOS SIGUEN SIENDO PARA NAVEGACIÓN MÓVIL #}
+                {% for category1_for_lvl3 in main_categories_for_menu %}
+                    {% for category2_for_lvl3 in category1_for_lvl3.subcategorias.all %}
+                        {% if category2_for_lvl3.subcategorias.all %}
+                        <div class="menu-panel level-3" id="panel-{{ category2_for_lvl3.slug }}"> {# Oculto por defecto #}
+                            <div class="offcanvas-header-custom">
+                                <button type="button" class="btn-back-offcanvas me-2" data-bs-target-level="2" data-bs-parent-target="#panel-{{ category1_for_lvl3.slug }}"><i class="bi bi-chevron-left"></i></button>
+                                <h5 class="offcanvas-title text-truncate">{{ category2_for_lvl3.nombre }}</h5>
+                            </div>
+                            <ul class="list-unstyled subcategories-list-nav">
+                                <li><a class="nav-link-custom fw-bold" href="{{ category2_for_lvl3.get_absolute_url }}">Ver todo en {{ category2_for_lvl3.nombre }}</a></li>
+                                <hr class="my-1">
+                                {% for category3 in category2_for_lvl3.subcategorias.all %}
+                                    <li class="nav-item-custom">
+                                        <a href="{{ category3.get_absolute_url }}" class="nav-link-custom">
+                                            {{ category3.nombre }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <main class="container mt-4 flex-grow-1">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <nav class="mobile-bottom-nav">
+        <a href="{% url 'core:home' %}" class="nav-item-mobile">
+            <i class="bi bi-house-door"></i>
+            <span>Inicio</span>
+        </a>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'mycustomers:profile_detail_self' %}" class="nav-item-mobile">
+                <i class="bi bi-person"></i>
+                <span>Mi Cuenta</span>
+            </a>
+        {% else %}
+            <a href="{% url 'account_login' %}" class="nav-item-mobile">
+                <i class="bi bi-person"></i>
+                <span>Mi Cuenta</span>
+            </a>
+        {% endif %}
+
+        <button type="button" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+            <i class="bi bi-grid"></i>
+            <span>Categorías</span>
+        </button>
+        
+        <a href="{% url 'myproducts:sale_list' %}" class="nav-item-mobile">
+            <i class="bi bi-tag"></i>
+            <span>Ofertas</span>
+        </a>
+
+        <a href="{% url 'core:informacion' %}" class="nav-item-mobile">
+            <i class="bi bi-three-dots"></i>
+            <span>Más</span>
+        </a>
+    </nav>
+
+    <footer class="mt-auto py-4 bg-dark text-white">
+        
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <a href="{% url 'core:home' %}" class="d-inline-block mb-3">
+                        <img src="{% static 'core/img/logoB_fgshop.png' %}" alt="FG Shop Logo" class="footer-logo">
+                    </a>
+                    <p class="small">
+                        Tu tienda online de confianza para encontrar todo lo que necesitas. Calidad y variedad a tu alcance.
+                    </p>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <h5>Enlaces Útiles</h5>
+                    <ul class="list-unstyled small">
+                        <li>
+                            <a href="{% url 'core:informacion' %}#acerca-de-nosotros" class="footer-link">
+                                <i class="bi bi-chevron-right me-2"></i>Acerca de Nosotros
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:informacion' %}#vende-con-nosotros" class="footer-link fw-bold text-warning">
+                                <i class="bi bi-shop me-2"></i>¡Vende con nosotros!
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:informacion' %}#politicas-envio" class="footer-link">
+                                <i class="bi bi-chevron-right me-2"></i>Políticas de Envío
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:informacion' %}#politica-devoluciones" class="footer-link">
+                                <i class="bi bi-chevron-right me-2"></i>Política de Devoluciones
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:informacion' %}#terminos-y-condiciones" class="footer-link">
+                                <i class="bi bi-chevron-right me-2"></i>Términos y Condiciones
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:informacion' %}#preguntas-frecuentes" class="footer-link">
+                                <i class="bi bi-chevron-right me-2"></i>Preguntas Frecuentes (FAQ)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contacto y Redes</h5>
+                    <p class="small">
+                        Email: <a href="mailto:fgshop0903@gmail.com" class="text-white-50">fgshop0903@gmail.com</a><br>
+                        WhatsApp: <a href="https://wa.me/51938709302" class="text-white-50" target="_blank">
+                            <i class="bi bi-whatsapp"></i> +51 938 709 302
+                        </a>
+                    </p>
+                    <div>
+                        <h5 class="d-lg-none mb-3">Síguenos</h5> {# Título para móviles #}
+                        <a href="https://www.facebook.com/share/16ZR76YaSy/?mibextid=qi2Omg" target="_blank" class="text-white-50 me-3 social-icon-link" title="Facebook">
+                            <i class="bi bi-facebook fs-4"></i>
+                        </a>
+                        <a href="URL_DE_TU_INSTAGRAM" target="_blank" class="text-white-50 me-3 social-icon-link" title="Instagram">
+                            <i class="bi bi-instagram fs-4"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@fgshop09?_t=ZM-8xPt1CQBdvJ&_r=1" target="_blank" class="text-white-50 social-icon-link" title="TikTok">
+                            <i class="bi bi-tiktok fs-4"></i>
+                        </a>
+                    </div>
+                    <h6 class="mt-4">Métodos de Pago Aceptados:</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        <img src="{% static 'core/img/payment/visa.png' %}" alt="Visa" class="payment-logo me-2" title="Visa">
+                        <img src="{% static 'core/img/payment/yape.png' %}" alt="Yape" class="payment-logo me-2" title="Yape">
+                        <img src="{% static 'core/img/payment/plin.png' %}" alt="Plin" class="payment-logo" title="Plin">
+
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3 border-secondary">
+            <div class="text-center small text-white-50">
+                <p class="mb-0">
+                    © {% now "Y" %} FG Shop. Todos los derechos reservados. | Desarrollado por 
+                    <a target="_blank" class="fw-bold text-white text-decoration-none">DieDev</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'core/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{% static 'core/js/custom_scripts.js' %}"></script> {# Para el JS del menú #}
+    <script src="{% static 'core/js/title_chooser.js' %}"></script>
+
+    <script src="{% static 'core/js/nav_active_state.js' %}"></script>
+
+
+    {% block extra_js %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</body>
+
+</html>

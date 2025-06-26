@@ -1,0 +1,94 @@
+{% extends "core/base.html" %}
+{% load humanize %} {# Para formatear números, ej. intcomma #}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ titulo_pagina }}</h2>
+    <hr>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID Pedido</th>
+                        <th>Fecha</th>
+                        {% if es_admin_view %}<th>Cliente</th>{% endif %}
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <a href="{% if es_admin_view %}{% url 'myorders:order_detail_admin' order.id %}{% else %}{% url 'myorders:order_detail' order.id %}{% endif %}">
+                                #{{ order.id_display }}
+                            </a>
+                        </td>
+                        <td>{{ order.fecha_pedido|date:"d M Y, H:i" }}</td>
+                        {% if es_admin_view %}
+                            <td>
+                                {% if order.user %}
+                                    {{ order.user.get_full_name|default:order.user.username }}
+                                {% else %}
+                                    {{ order.nombre_cliente|default:"Invitado" }}
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        <td>S/. {{ order.total_pedido|floatformat:2|intcomma }}</td>
+                        <td><span class="badge bg-{% if order.estado_pedido == 'ENTREGADO' %}success{% elif order.estado_pedido == 'CANCELADO' %}danger{% elif order.estado_pedido == 'PENDIENTE_PAGO' %}warning{% else %}info{% endif %}">{{ order.get_estado_pedido_display }}</span></td>
+                        <td>
+                            <a href="{% if es_admin_view %}{% url 'myorders:order_detail_admin' order.id %}{% else %}{% url 'myorders:order_detail' order.id %}{% endif %}" class="btn btn-sm btn-outline-primary">
+                                Ver Detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class.html="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info">
+            {% if es_admin_view %}
+                No hay pedidos registrados en el sistema.
+            {% else %}
+                Aún no has realizado ningún pedido.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

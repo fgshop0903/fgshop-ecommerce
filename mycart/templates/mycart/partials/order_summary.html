@@ -1,0 +1,39 @@
+{% comment %} mycart/templates/mycart/partials/order_summary.html {% endcomment %}
+{% load humanize %}
+
+{% with total_price=cart.get_total_price total_discount=cart.get_total_discount selected_items_count=cart.get_selected_items_count discounted_items_count=cart.get_discounted_items_count %}
+<div class="d-flex justify-content-between mb-2">
+    <span>Productos ({{ selected_items_count }})</span>
+    <span>S/ {{ total_price|add:total_discount|floatformat:2|intcomma }}</span>
+</div>
+
+{# --- LÓGICA CONDICIONAL PARA DESCUENTOS --- #}
+{% if total_discount > 0 %}
+<details class="discount-details mb-2" open>
+    <summary class="d-flex justify-content-between align-items-center">
+        {# Añadimos el contador de descuentos #}
+        <span>Descuentos ({{ discounted_items_count }})</span>
+        <span class="text-success fw-bold">- S/ {{ total_discount|floatformat:2|intcomma }}</span>
+    </summary>
+    <div class="discount-breakdown mt-2">
+        {% for supplier, items in cart.get_items_by_supplier.items %}
+            {% for item in items %}
+                {% if item.selected and item.discount > 0 %}
+                <div class="d-flex justify-content-between small">
+                    <span class="text-muted text-truncate" title="{{ item.variant.product.nombre }}">{{ item.variant.product.nombre }}</span>
+                    <span class="text-success text-nowrap">-S/{{ item.discount|floatformat:2|intcomma }}</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{# --- FIN DE LA LÓGICA CONDICIONAL --- #}
+
+<hr>
+<div class="d-flex justify-content-between fw-bold h5">
+    <span>Total:</span>
+    <span id="cart-total-summary">S/ {{ total_price|floatformat:2|intcomma }}</span>
+</div>
+{% endwith %}

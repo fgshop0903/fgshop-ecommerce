@@ -1,0 +1,37 @@
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Base de datos local
+# ¡NUNCA subas tu base de datos de desarrollo al repositorio!
+db.sqlite3
+*.sqlite3
+
+# Entorno virtual
+# Contiene cientos de archivos y es específico de tu máquina.
+venv/
+env/
+.venv/
+
+# Archivos de medios subidos localmente
+# En producción estarán en S3, no deben estar en el repositorio.
+media/
+
+# Directorio de archivos estáticos de producción
+# Este se genera con 'collectstatic' en el servidor.
+staticfiles/
+
+# Archivos de configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de registro
+*.log
+logs/
+
+# Archivos de variables de entorno locales (si los usas)
+.env

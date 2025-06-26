@@ -1,0 +1,66 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> › 
+  <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a> › 
+  <a href="{% url 'admin:myproducts_product_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> ›
+  <a href="{% url 'admin:myproducts_product_change' object_id=product.pk %}">{{ product.nombre|truncatewords:18 }}</a> ›
+  {{ title }}
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div id="content-main">
+  <form method="post">
+    {% csrf_token %}
+    
+    {% if form.errors %}
+      <p class="errornote">Por favor, corrige los errores.</p>
+      {{ form.non_field_errors }}
+    {% endif %}
+
+    <fieldset class="module aligned">
+      
+      <h2>{{ form.combinations.label }}</h2>
+
+      {% if has_choices %}
+        <div class="form-row">
+            {# --- INICIO DE LA SOLUCIÓN --- #}
+            {# Usamos la clase 'related-widget-wrapper' que el admin ya sabe cómo estilizar #}
+            <div class="related-widget-wrapper" style="max-height: 400px; overflow-y: auto;">
+                <ul>
+                {% for choice in form.combinations %}
+                    {# Iteramos manualmente sobre cada checkbox para tener control total #}
+                    {# La clase 'd-block' asegura que cada elemento esté en su propia línea #}
+                    <li class="d-block"> 
+                      {{ choice.tag }} {# Esto renderiza el <input type="checkbox"> #}
+                      <label for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label> {# Y esto la etiqueta de texto #}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+            {# --- FIN DE LA SOLUCIÓN --- #}
+            <div class="help">
+              Solo se crearán las variantes para las combinaciones que selecciones. Las que ya existan serán ignoradas.
+            </div>
+        </div>
+      {% else %}
+        <div class="form-row">
+            <p>Este producto no tiene atributos configurables o sus atributos no tienen valores asignados.</p>
+            <p><a href="{% url 'admin:myproducts_product_change' product.pk %}">Regresa al producto</a> para configurar sus atributos.</p>
+        </div>
+      {% endif %}
+    </fieldset>
+
+    <div class="submit-row">
+      {% if has_choices %}
+        <input type="submit" value="Generar Variantes" class="default">
+      {% endif %}
+      <a href="{% url 'admin:myproducts_product_changelist' %}" class="button cancel-link">Cancelar y Volver a la Lista</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

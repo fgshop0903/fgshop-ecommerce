@@ -1,0 +1,105 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo_pagina }}</h2>
+        <div>
+            <a href="{% url 'mysuppliers:supplier_update' supplier.pk %}" class="btn btn-warning">✏️ Editar</a>
+            <a href="{% url 'mysuppliers:supplier_delete' supplier.pk %}" class="btn btn-danger">🗑️ Eliminar</a>
+        </div>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Información Principal</h5></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Nombre Empresa:</strong> {{ supplier.nombre_empresa }}</li>
+                    <li class="list-group-item"><strong>RUC:</strong> {{ supplier.ruc }}</li>
+                    <li class="list-group-item"><strong>Estado:</strong> <span class="badge bg-{% if supplier.estado == 'ACTIVO' %}success{% elif supplier.estado == 'INACTIVO' %}danger{% else %}warning{% endif %}">{{ supplier.get_estado_display }}</span></li>
+                    <li class="list-group-item"><strong>Tipo de Proveedor:</strong> {{ supplier.get_tipo_proveedor_display|default:"No especificado" }}</li>
+                </ul>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Información de Contacto</h5></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Nombre Contacto:</strong> {{ supplier.nombre_contacto|default:"N/A" }}</li>
+                    <li class="list-group-item"><strong>Teléfono Contacto:</strong> {{ supplier.telefono_contacto|default:"N/A" }}</li>
+                    <li class="list-group-item"><strong>Correo Contacto:</strong> {{ supplier.correo_contacto|default:"N/A" }}</li>
+                    <li class="list-group-item"><strong>Sitio Web:</strong> {% if supplier.sitio_web %}<a href="{{ supplier.sitio_web }}" target="_blank">{{ supplier.sitio_web }}</a>{% else %}N/A{% endif %}</li>
+                </ul>
+            </div>
+             <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Condiciones y Evaluación</h5></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Términos de Pago:</strong> {{ supplier.terminos_pago|default:"N/A" }}</li>
+                    <li class="list-group-item"><strong>Tiempo Promedio de Entrega (a FG Shop):</strong> {{ supplier.tiempo_entrega_promedio_a_fg|default:"N/A" }}</li>
+                    <li class="list-group-item">
+                        <strong>Calificación Interna:</strong> 
+                        {% if supplier.calificacion_interna %}
+                            {% for i in "12345" %}
+                                {% if i|add:0 <= supplier.calificacion_interna %}⭐{% else %}☆{% endif %}
+                            {% endfor %}
+                            ({{ supplier.calificacion_interna }}/5)
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Direcciones</h5></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Dirección Fiscal:</strong><br>{{ supplier.direccion_fiscal|linebreaksbr|default:"N/A" }}</li>
+                    <li class="list-group-item"><strong>Dirección Almacén/Recojo:</strong><br>{{ supplier.direccion_almacen|linebreaksbr|default:"N/A" }}</li>
+                </ul>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Observaciones Generales</h5></div>
+                <div class="card-body">
+                    <p class="card-text">{{ supplier.observaciones_generales|linebreaksbr|default:"Sin observaciones." }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0">Auditoría</h5></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Fecha de Registro:</strong> {{ supplier.fecha_registro|date:"d M Y, H:i" }}</li>
+                    <li class="list-group-item"><strong>Última Actualización:</strong> {{ supplier.fecha_actualizacion|date:"d M Y, H:i" }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    {# Aquí podrías listar productos asociados si tuvieras el modelo SupplierProduct
+    {% if productos_proveedor %}
+    <div class="mt-4">
+        <h4>Productos Ofrecidos por este Proveedor</h4>
+        <ul>
+            {% for sp in productos_proveedor %}
+            <li>{{ sp.product.nombre }} - SKU Proveedor: {{ sp.supplier_sku }} - Costo: S/. {{ sp.cost_price }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    #}
+
+    <div class="mt-4">
+        <a href="{% url 'mysuppliers:supplier_list' %}" class="btn btn-outline-secondary">← Volver al Listado</a>
+    </div>
+</div>
+{% endblock %}

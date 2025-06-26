@@ -1,0 +1,74 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    {% if query %}
+        Resultados para "{{ query }}"
+    {% else %}
+        Búsqueda de Productos
+    {% endif %}
+    - FG Shop
+{% endblock %}
+
+{% block extra_head %}
+    {{ block.super }}
+    {# Asumo que tienes estilos para la lista de productos que quieres reutilizar #}
+    <link href="{% static 'myproducts/css/product_list.css' %}" rel="stylesheet"> 
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="search-results-header mb-4">
+        {% if query %}
+            <h1>Resultados de búsqueda para: "<span class="text-primary">{{ query }}</span>"</h1>
+            <p class="lead text-muted">
+                {% if productos %}
+                    Se encontraron {{ productos|length }} producto{{ productos|length|pluralize }}.
+                {% else %}
+                    No se encontraron productos que coincidan con tu búsqueda.
+                {% endif %}
+            </p>
+        {% else %}
+            <h1>Búsqueda de Productos</h1>
+            <p class="lead text-muted">Por favor, ingresa un término en la barra de búsqueda superior.</p>
+        {% endif %}
+    </div>
+
+    {% if page_obj %} {# Cambiamos la condición #}
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-lg-4">
+        {% for producto in page_obj %} {# ¡Iteramos sobre page_obj! #}
+            <div class="col">
+                {% include "myproducts/includes/product_card.html" with producto=producto %} 
+            </div>
+        {% endfor %}
+    </div>
+
+    {# AÑADE este bloque de paginación aquí #}
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">«</a></li>{% else %}<li class="page-item disabled"><span class="page-link">«</span></li>{% endif %}
+            {% for i in paginator.page_range %}{% if page_obj.number == i %}<li class="page-item active"><span class="page-link">{{ i }}</span></li>{% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}<li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ i }}">{{ i }}</a></li>{% endif %}{% endfor %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">»</a></li>{% else %}<li class="page-item disabled"><span class="page-link">»</span></li>{% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% elif search_performed and not productos %}
+        <div class="alert alert-warning" role="alert">
+            No se encontraron productos para "<strong>{{ query }}</strong>". Intenta con otros términos de búsqueda.
+        </div>
+    {% endif %}
+
+    <div class="my-5 text-center">
+        <a href="{% url 'myproducts:product_list' %}" class="btn btn-outline-secondary">Ver todos los productos</a>
+        {% if query %}
+        o <a href="{% url 'core:home' %}" class="btn btn-link">Volver al Inicio</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'myproducts/js/product_pod_hover.js' %}"></script>
+{% endblock extra_js %}
