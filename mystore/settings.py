@@ -17,7 +17,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-default-key-for
 
 # DEBUG será 'False' en producción (cuando la variable RENDER esté presente).
 # En tu máquina local, seguirá siendo 'True'.
-DEBUG = 'RENDER' not in os.environ
+IS_DEVELOPMENT = 'RENDER' not in os.environ
+DEBUG_FROM_ENV = os.environ.get('DEBUG') == 'True'
+
+DEBUG = IS_DEVELOPMENT or DEBUG_FROM_ENV
 
 # Hosts permitidos. Se configurará automáticamente con la URL de Render.
 ALLOWED_HOSTS = [
