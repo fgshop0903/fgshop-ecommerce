@@ -20,7 +20,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-default-key-for
 DEBUG = 'RENDER' not in os.environ
 
 # Hosts permitidos. Se configurará automáticamente con la URL de Render.
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'fgshop-ecommerce.onrender.com',
+]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
