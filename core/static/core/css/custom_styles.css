@@ -410,51 +410,6 @@ a[href*="mycart:cart_detail"] .badge {
     background-color: var(--fg-secondary-color) !important;
 }
 
-
-/* Hero Section / Carousel */
-.hero-section .carousel-item {
-    /* Altura por defecto para escritorio, puedes ajustar */
-    height: 450px; /* Una altura cómoda para banners de escritorio, similar a Falabella */
-    overflow: hidden; /* Muy importante para que object-fit: cover funcione bien */
-    position: relative; /* Mantener para el posicionamiento del caption */
-}
-/* Aplica a la imagen dentro de <picture> */
-.hero-section .carousel-item picture img { /* O .hero-section .carousel-item img si solo aplica a img directamente */
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
-.hero-section .carousel-item img {
-    width: 100%;
-    height: 100%; /* La imagen ocupa el 100% del alto de su padre (.carousel-item) */
-    object-fit: cover; /* ¡Esta es la clave para que no se desfigure y cubra el ancho! */
-    object-position: center; /* Centra la imagen dentro del contenedor */
-}
-
-.hero-section .carousel-caption {
-    bottom: 20%;
-    /* Ajusta la posición vertical del texto */
-    background-color: rgba(0, 0, 0, 0.3);
-    /* Fondo semitransparente para el texto */
-    padding: 1.5rem;
-    border-radius: 0.25rem;
-}
-
-.hero-section .carousel-caption h5 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #fff;
-    /* Texto blanco en el caption */
-}
-
-.hero-section .carousel-caption p {
-    font-size: 1.1rem;
-    color: #f8f9fa;
-    /* Texto ligeramente menos blanco */
-}
-
 /* Value Propositions */
 .value-propositions i.fs-2 {
     /* color: var(--fg-primary-color); ya está en el html, se puede quitar de aquí */
@@ -1283,14 +1238,6 @@ main.flex-grow-1 {
 
 }
 
-/* Opcional: Ocultar el caption completamente en dispositivos muy pequeños */
-@media (max-width: 575.98px) { /* Extra small devices (phones) */
-    .hero-section .carousel-caption {
-        display: none !important; /* Oculta completamente el texto en pantallas muy pequeñas */
-    }
-}
-
-
  /* --- Estilos para Móviles --- */
 @media (max-width: 767.98px) {
     .testimonial-card-modern {
@@ -1301,5 +1248,102 @@ main.flex-grow-1 {
     }
      .carousel-item-product {
         width: 65%; /* Ocupa el 65% del ancho de la pantalla */
+    }
+}
+
+/* ========================================================= */
+/*          HERO SECTION / CAROUSEL (RESPONSIVE)             */
+/* ========================================================= */
+
+/* --- Estilos por defecto (para MÓVIL) --- */
+
+.hero-section .carousel-item {
+    height: 280px; /* Una buena altura para móvil */
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section .carousel-item picture,
+.hero-section .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-section .carousel-caption {
+    /* Posición y tamaño en móvil */
+    position: absolute;
+    bottom: 15px; /* Lo separamos un poco de abajo */
+    left: 5%;     /* Margen a los lados */
+    right: 5%;
+    
+    /* Apariencia en móvil */
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5); /* Fondo oscuro para contraste */
+    border-radius: 8px;
+    text-align: center;
+    color: #fff;
+}
+
+.hero-section .carousel-caption h5 {
+    font-size: 1.1rem;  /* Título más pequeño y legible */
+    margin-bottom: 0.75rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ¡AQUÍ ESTÁ LA MAGIA! Hacemos visible el subtítulo y el botón en móvil */
+.hero-section .carousel-caption p {
+    display: block; /* <-- ¡Aseguramos que se muestre! */
+    font-size: 0.85rem; /* Tamaño del subtítulo */
+    margin-bottom: 0.8rem; /* Espacio antes del botón */
+    line-height: 1.4;
+}
+
+/* El último párrafo (el que contiene el botón) no necesita margen abajo */
+.hero-section .carousel-caption p:last-child {
+    margin-bottom: 0;
+}
+
+.hero-section .carousel-caption .btn {
+    font-size: 0.85rem;  /* Botón más pequeño y consistente */
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+
+/* --- Estilos para pantallas más grandes (desde 768px hacia arriba) --- */
+@media (min-width: 768px) {
+
+    .hero-section .carousel-item {
+        height: 450px; /* Volvemos a la altura grande para escritorio */
+    }
+
+    .hero-section .carousel-caption {
+        /* Devolvemos el posicionamiento de escritorio */
+        bottom: 20%;
+        left: 15%;
+        right: auto;
+        text-align: left;
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.3); /* Un poco más sutil */
+        max-width: 45%; /* Evitamos que ocupe toda la pantalla */
+    }
+
+    .hero-section .carousel-caption h5 {
+        font-size: 2.5rem; /* Título grande */
+    }
+
+    /* ¡Hacemos visible el subtítulo en escritorio! */
+    .hero-section .carousel-caption p {
+        display: block;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-section .carousel-caption .btn {
+        font-size: 1.1rem; /* Botón grande */
+        padding: 0.75rem 1.5rem;
     }
 }
