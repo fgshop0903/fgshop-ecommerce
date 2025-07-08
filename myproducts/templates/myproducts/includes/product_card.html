@@ -37,13 +37,17 @@
             </p>
         {% endif %}
         
-        {% if producto.color_info %}
-            <div class="color-swatches mb-2" data-product-id="{{ producto.id }}">
-                {% for color in producto.color_info|slice:":5" %}
+        {% if producto.visual_options %} 
+            <div class="visual-swatches mb-2" data-product-id="{{ producto.id }}">
+                {% for option in producto.visual_options|slice:":5" %}
                     <span class="swatch" 
-                          style="background-color: {{ color.code|default:'#ccc' }};" 
-                          data-images="{{ color.images|join:',' }}" 
-                          title="{{ color.name }}"></span>
+                        style="background-color: {{ option.code|default:'#ccc' }};"
+                        data-images="{{ option.images|join:',' }}" 
+                        title="{{ option.name }}">
+                        {% if not option.code %}
+                            {{ option.name|first }}
+                        {% endif %}
+                    </span>
                 {% endfor %}
             </div>
         {% endif %}

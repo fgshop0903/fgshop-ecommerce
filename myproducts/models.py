@@ -151,6 +151,15 @@ class Product(models.Model):
     precio_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Precio base si el producto no tiene variantes o como referencia.")
     configurable_attributes = models.ManyToManyField(Attribute, blank=True, related_name='configurable_products', help_text="Atributos que se usarán para crear variantes de este producto (ej. Talla, Color).")
     default_variant = models.OneToOneField('ProductVariant', on_delete=models.SET_NULL, null=True, blank=True, related_name='default_for_product', help_text="Variante que se muestra/usa por defecto si existe.")
+    visual_attribute = models.ForeignKey(
+        'Attribute',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='visual_for_products',
+        verbose_name="Atributo Visual Principal",
+        help_text="El atributo que controla las imágenes (ej. Color para ropa, Sabor para suplementos)."
+    )
     acepta_cuotas = models.BooleanField(
         default=False,
         verbose_name="Acepta pago en cuotas",
@@ -221,44 +230,38 @@ class ProductVariant(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-    def get_main_image_url(self):
-        color_option = self.options.filter(attribute__slug='color').first()
-        if color_option:
-            attr_image = AttributeImage.objects.filter(
-                product=self.product,
-                attribute_value=color_option
-            ).first()
-            if attr_image:
-                return attr_image.image.url
+    def get_visual_image_url(self):
+        """
+        Obtiene la URL de la imagen principal basada en el atributo visual del producto.
+        Este método está optimizado para funcionar con los datos precargados (prefetched) de las vistas.
+        """
+        # Si la vista no precargó los datos necesarios, no podemos hacer nada.
+        if not hasattr(self.product, 'visual_attribute') or not hasattr(self.product, 'prefetched_images'):
+            return None
+
+        # 1. Determinar el slug del atributo que estamos buscando (ej. 'color', 'sabor')
+        visual_slug = self.product.visual_attribute.slug if self.product.visual_attribute else 'color'
+
+        # 2. Encontrar la opción de ESTA variante que corresponde a ese atributo
+        visual_option = None
+        # self.options.all() usa los datos precargados si la vista los proveyó
+        for option in self.options.all(): 
+            if option.attribute.slug == visual_slug:
+                visual_option = option
+                break
         
-        # Fallback: si no hay imagen de color, busca la primera imagen del producto
-        first_product_image = self.product.attribute_images.first()
-        if first_product_image:
-            return first_product_image.image.url
-        
+        # 3. Si encontramos la opción, buscar su imagen en la lista de imágenes precargadas
+        if visual_option:
+            # Iteramos sobre la lista de imágenes que la vista ya trajo de la BD
+            for image in self.product.prefetched_images:
+                if image.attribute_value_id == visual_option.id:
+                    return image.image.url # ¡Éxito! La encontramos.
+
+        # 4. Fallback: Si no se encontró una imagen específica, devolver la primera imagen del producto.
+        if hasattr(self.product, 'prefetched_images') and self.product.prefetched_images:
+            return self.product.prefetched_images[0].image.url
+
         return None
-    
-    def get_image_urls_for_color(self):
-        color_option = self.options.filter(attribute__slug='color').first()
-        if not color_option:
-            # Si no hay color, devuelve la URL de la primera imagen como único elemento de la lista
-            main_url = self.get_main_image_url()
-            return [main_url] if main_url else []
-
-        # Busca en las imágenes precargadas (eficiente)
-        if hasattr(self.product, 'prefetched_images'):
-            images = [
-                img.image.url for img in self.product.prefetched_images 
-                if img.attribute_value_id == color_option.id
-            ]
-            if images:
-                return images
-
-        # Fallback si no hay datos precargados (menos eficiente, pero seguro)
-        return list(AttributeImage.objects.filter(
-            product=self.product,
-            attribute_value=color_option
-        ).order_by('orden_visualizacion').values_list('image', flat=True))
 
 # --- CAMBIO 1: NUEVO MODELO PARA GESTIONAR IMÁGENES POR ATRIBUTO ---
 

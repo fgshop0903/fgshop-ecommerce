@@ -44,18 +44,25 @@
     font-size: 0.75rem; /* ¡Esta es la clave! Es más pequeño que 'small' (que es 0.875rem) */
     font-weight: 500;  /* Opcional: un grosor medio para que sea legible */
 }
-.color-swatches {
+.visual-swatches { 
     display: flex;
     gap: 5px;
     height: 20px;
     margin-bottom: 0.5rem;
 }
-.color-swatches .swatch {
-    width: 16px;
-    height: 16px;
+.visual-swatches .swatch {
+    width: 20px; /* Un poquito más grande para que quepa la letra */
+    height: 20px; /* Un poquito más grande */
     border-radius: 50%;
     border: 1px solid #ddd;
-    display: inline-block;
+    display: inline-flex; /* <-- ¡CLAVE! para centrar contenido */
+    align-items: center; /* <-- ¡CLAVE! Centra verticalmente */
+    justify-content: center; /* <-- ¡CLAVE! Centra horizontalmente */
+    font-size: 0.7rem; /* Tamaño de la letra */
+    font-weight: bold;
+    color: #333; /* Color de la letra */
+    cursor: pointer; /* <-- ¡CLAVE! Para que parezca un botón */
+    transition: all 0.2s ease; /* Transición suave */
 }
 .price-container {
     margin-bottom: 0.25rem;
@@ -86,7 +93,7 @@
     padding: 0.5rem;
 }
 
-.color-swatches .swatch.selected {
+.visual-swatches .swatch.selected {
     border-color: #0d6efd; /* Un color primario para destacar */
     box-shadow: 0 0 0 2px white, 0 0 0 3px #0d6efd;
     transform: scale(1.1);

@@ -23,20 +23,93 @@ from django.db.models import F
 from .models import ProductVariant
 from django.core.paginator import Paginator
 
+from .models import (
+    Product, Categoria, Brand, Supplier, 
+    ProductVariant, AttributeImage, Attribute
+)
+from .forms import ProductForm
+
+# =============================================================================
+#  EL PAQUETE DE SUPERPODERES (NUESTRO MIXIN)
+# =============================================================================
+class ProductListOptimizationMixin:
+    """
+    Este Mixin se encarga de dos cosas:
+    1. Optimizar la consulta de productos para evitar N+1 queries.
+    2. Enriquecer cada producto con datos extra para las plantillas (imagen principal, swatches, etc).
+    """
+    context_object_name = 'productos'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.annotate(
+            min_variant_price=Min('variants__precio_variante', filter=Q(variants__activo=True, variants__stock_disponible__gt=0))
+        ).select_related(
+            'brand', 'supplier', 'visual_attribute'
+        ).prefetch_related(
+            Prefetch(
+                'variants',
+                queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
+                to_attr='active_variants'
+            ),
+            Prefetch(
+                'attribute_images',
+                queryset=AttributeImage.objects.select_related('attribute_value').order_by('orden_visualizacion'),
+                to_attr='prefetched_images'
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        products_list = context.get(self.context_object_name, [])
+
+        images_map = defaultdict(lambda: defaultdict(list))
+        for product in products_list:
+            if hasattr(product, 'prefetched_images'):
+                for img in product.prefetched_images:
+                    images_map[product.id][img.attribute_value_id].append(img.image.url)
+
+        for producto in products_list:
+            visual_attribute_slug = producto.visual_attribute.slug if producto.visual_attribute else 'color'
+            sorted_variants = sorted(getattr(producto, 'active_variants', []), key=lambda v: v.precio_variante)
+            producto.variant_to_display = sorted_variants[0] if sorted_variants else None
+            
+            producto.main_image_url = ''
+            if producto.variant_to_display:
+                visual_option = next((opt for opt in producto.variant_to_display.options.all() if opt.attribute.slug == visual_attribute_slug), None)
+                if visual_option and images_map[producto.id][visual_option.id]:
+                    producto.main_image_url = images_map[producto.id][visual_option.id][0]
+
+            if not producto.main_image_url and hasattr(producto, 'prefetched_images') and producto.prefetched_images:
+                producto.main_image_url = producto.prefetched_images[0].image.url
+            
+            producto.visual_options = []
+            unique_visuals = set()
+            if hasattr(producto, 'active_variants'):
+                for variant in producto.active_variants:
+                    for option in variant.options.all():
+                        if option.attribute.slug == visual_attribute_slug and option.value not in unique_visuals:
+                            unique_visuals.add(option.value)
+                            all_images = images_map.get(producto.id, {}).get(option.id, [])
+                            if all_images:
+                                producto.visual_options.append({
+                                    'name': option.value,
+                                    'code': option.color_code,
+                                    'images': all_images
+                                })
+        return context
+
+# =============================================================================
+#  VISTAS CRUD (Crear, Editar, Borrar) - AHORA INCLUIDAS
+# =============================================================================
 class ProductCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Product
     form_class = ProductForm
     template_name = 'myproducts/product_form.html'
     success_message = "Producto '%(nombre)s' creado exitosamente."
-
+    
     def get_success_url(self):
-        # Redirige al detalle del producto recién creado
         return reverse_lazy('myproducts:product_detail', kwargs={'slug': self.object.slug})
-
-    def form_valid(self, form):
-        # form.instance.creador = self.request.user # Si quieres asignar el usuario que lo crea
-        messages.success(self.request, f"Producto '{form.cleaned_data.get('nombre')}' creado exitosamente.")
-        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -54,213 +127,52 @@ class ProductUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_success_url(self):
         return reverse_lazy('myproducts:product_detail', kwargs={'slug': self.object.slug})
 
-    def form_valid(self, form):
-        messages.success(self.request, f"Producto '{form.cleaned_data.get('nombre')}' actualizado exitosamente.")
-        return super().form_valid(form)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = f"Editar Producto: {self.object.nombre}"
         context['nombre_boton'] = "Actualizar Producto"
         return context
     
-class ProductDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView): # <--- NOMBRE NUEVO Y MIXINS ADECUADOS
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     template_name = 'myproducts/product_confirm_delete.html'
     slug_url_kwarg = 'slug'
     success_url = reverse_lazy('myproducts:product_list')
 
-    def get_success_message(self, cleaned_data):
-        return f"Producto '{self.object.nombre}' eliminado exitosamente."
+    def form_valid(self, form):
+        messages.success(self.request, f"Producto '{self.object.nombre}' eliminado exitosamente.")
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = f"Eliminar Producto: {self.object.nombre}"
-        return context 
-
-class ProductSearchView(ListView):
-    model = Product
-    template_name = 'myproducts/product_search_results.html'
-    context_object_name = 'productos'
-    paginate_by = 16  # ¡Paginación gratis! Ajusta el número como quieras.
-
-    def get_queryset(self):
-        query = self.request.GET.get('q', '').strip()
-        if not query:
-            return Product.objects.none()  # No mostrar nada si no hay búsqueda
-
-        # 1. FILTRAR
-        search_results = Product.objects.filter(
-            Q(nombre__icontains=query) | 
-            Q(descripcion__icontains=query) |
-            Q(brand__nombre__icontains=query) |
-            Q(categoria__nombre__icontains=query) |
-            Q(variants__sku__icontains=query)
-        ).filter(activo=True).distinct()
-
-        # 2. OPTIMIZAR (Lógica de ProductListView)
-        return search_results.annotate(
-            min_variant_price=Min('variants__precio_variante', filter=Q(variants__activo=True, variants__stock_disponible__gt=0))
-        ).prefetch_related(
-            Prefetch(
-                'variants',
-                queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
-                to_attr='active_variants'
-            )
-        )
-
-    def get_context_data(self, **kwargs):
-        # Primero, obtenemos el contexto base de ListView
-        context = super().get_context_data(**kwargs)
-        query = self.request.GET.get('q', '').strip()
-
-        # 3. PROCESAR (Lógica de ProductListView)
-        color_attribute_slug = 'color'
-        product_ids = [p.id for p in context['productos']]
-
-        images_map = defaultdict(lambda: defaultdict(list))
-        attr_images = AttributeImage.objects.filter(
-            product_id__in=product_ids,
-            attribute_value__attribute__slug=color_attribute_slug
-        ).select_related('attribute_value').order_by('orden_visualizacion')
-
-        for img in attr_images:
-            images_map[img.product_id][img.attribute_value.value].append(img.image.url)
-
-        for producto in context['productos']:
-            # Asignar variante y demás atributos extra
-            if hasattr(producto, 'active_variants'):
-                sorted_variants = sorted(producto.active_variants, key=lambda v: v.precio_variante)
-                producto.variant_to_display = sorted_variants[0] if sorted_variants else None
-            else:
-                producto.variant_to_display = None
-            
-            producto.main_image_url = ''
-            if producto.variant_to_display:
-                color_opt = next((opt for opt in producto.variant_to_display.options.all() if opt.attribute.slug == color_attribute_slug), None)
-                if color_opt and images_map[producto.id][color_opt.value]:
-                    producto.main_image_url = images_map[producto.id][color_opt.value][0]
-            if not producto.main_image_url:
-                 first_img = AttributeImage.objects.filter(product=producto).first()
-                 if first_img:
-                    producto.main_image_url = first_img.image.url
-
-            producto.color_info = []
-            unique_colors_set = set()
-            if hasattr(producto, 'active_variants'):
-                for variant in producto.active_variants:
-                    for option in variant.options.all():
-                        if option.attribute.slug == color_attribute_slug and option.value not in unique_colors_set:
-                            unique_colors_set.add(option.value)
-                            all_images_for_color = images_map.get(producto.id, {}).get(option.value, [])
-                            if all_images_for_color:
-                                producto.color_info.append({
-                                    'name': option.value,
-                                    'code': option.color_code,
-                                    'images': all_images_for_color
-                                })
-        
-        # 4. AÑADIR VARIABLES EXTRA AL CONTEXTO
-        context['query'] = query
-        context['search_performed'] = bool(query)
-        context['titulo_pagina'] = f"Resultados para '{query}'"
-        
         return context
 
-class ProductListView(ListView):
+# =============================================================================
+#  VISTAS DE LISTADO (Usando el Mixin)
+# =============================================================================
+class ProductListView(ProductListOptimizationMixin, ListView):
     model = Product
     template_name = 'myproducts/product_list.html'
-    context_object_name = 'productos'
     paginate_by = 12
 
     def get_queryset(self):
-        queryset = Product.objects.filter(activo=True)
+        queryset = super().get_queryset().filter(activo=True)
         self.categoria_actual = None
-        
-        # --- INICIO DE LA LÓGICA CORREGIDA ---
         category_path = self.kwargs.get('category_path')
         if category_path:
-            # Dividimos la ruta por las barras para obtener los slugs individuales
             slugs = category_path.split('/')
-            
-            # Recorremos la jerarquía para encontrar la categoría nieta correcta
             parent = None
             for slug in slugs:
-                # Buscamos la categoría por su slug y asegurándonos que tenga el padre correcto
                 self.categoria_actual = get_object_or_404(Categoria, slug=slug, padre=parent)
-                # La categoría que acabamos de encontrar será el padre de la siguiente en el bucle
                 parent = self.categoria_actual
-        # --- FIN DE LA LÓGICA CORREGIDA ---
-
-        # El resto de tu función funciona perfectamente con la categoría ya encontrada
         if self.categoria_actual:
             queryset = queryset.filter(categoria_id__in=self.categoria_actual.get_descendant_ids())
-        
-        queryset = queryset.annotate(
-            min_variant_price=Min('variants__precio_variante', filter=Q(variants__activo=True, variants__stock_disponible__gt=0))
-        ).prefetch_related(
-            Prefetch(
-                'variants',
-                queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
-                to_attr='active_variants'
-            )
-        )
-        return queryset.order_by('-destacado', '-creado')   
+        return queryset.order_by('-destacado', '-creado')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categoria_actual'] = self.categoria_actual
-        
-        color_attribute_slug = 'color'
-        product_ids = [p.id for p in context['productos']]
-
-        # 1. Mapear todas las imágenes de una vez para ser eficientes
-        images_map = defaultdict(lambda: defaultdict(list))
-        attr_images = AttributeImage.objects.filter(
-            product_id__in=product_ids,
-            attribute_value__attribute__slug=color_attribute_slug
-        ).select_related('attribute_value').order_by('orden_visualizacion')
-
-        for img in attr_images:
-            images_map[img.product_id][img.attribute_value.value].append(img.image.url)
-
-        # 2. ÚNICO BUCLE para procesar cada producto y añadirle la info extra
-        for producto in context['productos']:
-            # Asignar la variante a mostrar (la más barata disponible)
-            sorted_variants = sorted(producto.active_variants, key=lambda v: v.precio_variante)
-            producto.variant_to_display = sorted_variants[0] if sorted_variants else None
-            
-            # Obtener la imagen principal a partir de la variante a mostrar
-            producto.main_image_url = ''
-            if producto.variant_to_display:
-                first_variant_color = None
-                for opt in producto.variant_to_display.options.all():
-                    if opt.attribute.slug == color_attribute_slug:
-                        first_variant_color = opt.value
-                        break
-                if first_variant_color and images_map[producto.id][first_variant_color]:
-                    producto.main_image_url = images_map[producto.id][first_variant_color][0]
-
-            # Recopilar información de colores (nombre, código, lista de imágenes)
-            producto.color_info = []
-            unique_colors_set = set() # <--- INICIALIZAMOS AQUÍ, ANTES DE USARLA
-            
-            for variant in producto.active_variants:
-                for option in variant.options.all():
-                    # Ahora la comprobación funciona porque 'unique_colors_set' ya existe
-                    if option.attribute.slug == color_attribute_slug and option.value not in unique_colors_set:
-                        unique_colors_set.add(option.value)
-                        
-                        all_images_for_color = images_map.get(producto.id, {}).get(option.value, [])
-                        
-                        if all_images_for_color:
-                            producto.color_info.append({
-                                'name': option.value,
-                                'code': option.color_code,
-                                'images': all_images_for_color
-                            })
-        
-        # Lógica de breadcrumbs (fuera del bucle)
         if self.categoria_actual:
             ruta_categoria = []
             cat_temp = self.categoria_actual
@@ -268,153 +180,68 @@ class ProductListView(ListView):
                 ruta_categoria.append(cat_temp)
                 cat_temp = cat_temp.padre
             context['ruta_categoria'] = reversed(ruta_categoria)
-            
         return context
 
-
-class ProductListByBrandView(ListView):
+class ProductSearchView(ProductListOptimizationMixin, ListView):
     model = Product
-    template_name = 'myproducts/product_list_by_brand.html'
-    context_object_name = 'productos'
-    paginate_by = 12 # O el número que prefieras
+    template_name = 'myproducts/product_search_results.html'
+    paginate_by = 16
 
     def get_queryset(self):
-        # Primero, filtramos por la marca, que es lo específico de esta vista
-        self.brand = get_object_or_404(Brand, slug=self.kwargs['brand_slug'])
-        queryset = Product.objects.filter(brand=self.brand, activo=True)
+        query = self.request.GET.get('q', '').strip()
+        if not query:
+            return Product.objects.none()
+        
+        search_results = Product.objects.filter(
+            Q(nombre__icontains=query) | Q(descripcion__icontains=query) |
+            Q(brand__nombre__icontains=query) | Q(categoria__nombre__icontains=query) |
+            Q(variants__sku__icontains=query)
+        ).filter(activo=True).distinct()
+        
+        # El super().get_queryset() ahora llama al Mixin
+        return super().get_queryset().filter(pk__in=search_results.values_list('pk', flat=True))
 
-        # AHORA, AÑADIMOS TODA LA LÓGICA DE OPTIMIZACIÓN
-        queryset = queryset.annotate(
-            min_variant_price=Min('variants__precio_variante', filter=Q(variants__activo=True, variants__stock_disponible__gt=0))
-        ).prefetch_related(
-            Prefetch(
-                'variants',
-                queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
-                to_attr='active_variants'
-            )
-        )
-        return queryset.order_by('-creado')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '').strip()
+        context['query'] = query
+        context['search_performed'] = bool(query)
+        context['titulo_pagina'] = f"Resultados para '{query}'" if query else "Búsqueda"
+        return context
+
+class ProductListByBrandView(ProductListOptimizationMixin, ListView):
+    model = Product
+    template_name = 'myproducts/product_list_by_brand.html'
+    paginate_by = 12
+
+    def get_queryset(self):
+        self.brand = get_object_or_404(Brand, slug=self.kwargs['brand_slug'])
+        return super().get_queryset().filter(brand=self.brand, activo=True).order_by('-creado')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['current_brand'] = self.brand
         context['page_title'] = f"Productos de la marca {self.brand.nombre}"
-        
-        # --- COPIAMOS LA LÓGICA DE PROCESAMIENTO DE IMÁGENES Y COLORES ---
-        color_attribute_slug = 'color'
-        product_ids = [p.id for p in context['productos']]
-
-        images_map = defaultdict(lambda: defaultdict(list))
-        attr_images = AttributeImage.objects.filter(
-            product_id__in=product_ids,
-            attribute_value__attribute__slug=color_attribute_slug
-        ).select_related('attribute_value').order_by('orden_visualizacion')
-
-        for img in attr_images:
-            images_map[img.product_id][img.attribute_value.value].append(img.image.url)
-
-        for producto in context['productos']:
-            sorted_variants = sorted(producto.active_variants, key=lambda v: v.precio_variante)
-            producto.variant_to_display = sorted_variants[0] if sorted_variants else None
-            
-            producto.main_image_url = ''
-            if producto.variant_to_display:
-                first_variant_color = None
-                for opt in producto.variant_to_display.options.all():
-                    if opt.attribute.slug == color_attribute_slug:
-                        first_variant_color = opt.value
-                        break
-                if first_variant_color and images_map[producto.id][first_variant_color]:
-                    producto.main_image_url = images_map[producto.id][first_variant_color][0]
-
-            producto.color_info = []
-            unique_colors_set = set()
-            
-            for variant in producto.active_variants:
-                for option in variant.options.all():
-                    if option.attribute.slug == color_attribute_slug and option.value not in unique_colors_set:
-                        unique_colors_set.add(option.value)
-                        all_images_for_color = images_map.get(producto.id, {}).get(option.value, [])
-                        if all_images_for_color:
-                            producto.color_info.append({
-                                'name': option.value,
-                                'code': option.color_code,
-                                'images': all_images_for_color
-                            })
         return context
 
-# Vista para listar productos por PROVEEDOR
-class ProductListBySupplierView(ListView):
+class ProductListBySupplierView(ProductListOptimizationMixin, ListView):
     model = Product
     template_name = 'myproducts/product_list_by_supplier.html'
-    context_object_name = 'productos'
     paginate_by = 12
 
     def get_queryset(self):
-        # Filtramos por proveedor
         self.supplier = get_object_or_404(Supplier, pk=self.kwargs['supplier_pk'])
-        queryset = Product.objects.filter(supplier=self.supplier, activo=True)
-
-        # AÑADIMOS LA LÓGICA DE OPTIMIZACIÓN
-        queryset = queryset.annotate(
-            min_variant_price=Min('variants__precio_variante', filter=Q(variants__activo=True, variants__stock_disponible__gt=0))
-        ).prefetch_related(
-            Prefetch(
-                'variants',
-                queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
-                to_attr='active_variants'
-            )
-        )
-        return queryset.order_by('-creado')
+        return super().get_queryset().filter(supplier=self.supplier, activo=True).order_by('-creado')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['supplier'] = self.supplier
         context['page_title'] = f"Productos de {self.supplier.nombre_empresa}"
-        
-        # --- COPIAMOS LA LÓGICA DE PROCESAMIENTO DE IMÁGENES Y COLORES ---
-        color_attribute_slug = 'color'
-        product_ids = [p.id for p in context['productos']]
-
-        images_map = defaultdict(lambda: defaultdict(list))
-        attr_images = AttributeImage.objects.filter(
-            product_id__in=product_ids,
-            attribute_value__attribute__slug=color_attribute_slug
-        ).select_related('attribute_value').order_by('orden_visualizacion')
-
-        for img in attr_images:
-            images_map[img.product_id][img.attribute_value.value].append(img.image.url)
-
-        for producto in context['productos']:
-            sorted_variants = sorted(producto.active_variants, key=lambda v: v.precio_variante)
-            producto.variant_to_display = sorted_variants[0] if sorted_variants else None
-            
-            producto.main_image_url = ''
-            if producto.variant_to_display:
-                first_variant_color = None
-                for opt in producto.variant_to_display.options.all():
-                    if opt.attribute.slug == color_attribute_slug:
-                        first_variant_color = opt.value
-                        break
-                if first_variant_color and images_map[producto.id][first_variant_color]:
-                    producto.main_image_url = images_map[producto.id][first_variant_color][0]
-
-            producto.color_info = []
-            unique_colors_set = set()
-            
-            for variant in producto.active_variants:
-                for option in variant.options.all():
-                    if option.attribute.slug == color_attribute_slug and option.value not in unique_colors_set:
-                        unique_colors_set.add(option.value)
-                        all_images_for_color = images_map.get(producto.id, {}).get(option.value, [])
-                        if all_images_for_color:
-                            producto.color_info.append({
-                                'name': option.value,
-                                'code': option.color_code,
-                                'images': all_images_for_color
-                            })     
         return context
 
+# =============================================================================
+#  VISTA DE DETALLE
+# =============================================================================
 class ProductDetailView(DetailView):
     model = Product
     template_name = 'myproducts/product_detail.html'
@@ -424,29 +251,17 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.get_object()
-
-
-        # 1. OBTENER VARIANTES ACTIVAS
         variants_queryset = product.variants.filter(activo=True).prefetch_related('options__attribute')
 
-        # Si no hay variantes activas, no podemos continuar.
         if not variants_queryset.exists():
-            context['variants_data_json'] = json.dumps({'variants': []})
+            context['variants_data_json'] = {} # Enviar diccionario vacío
             return context
 
-        # 2. MAPEAR IMÁGENES POR VALOR DE ATRIBUTO (COLOR)
         attribute_images_map = defaultdict(list)
-        color_attribute_slug = 'color'  # Asumimos que el slug de tu atributo de color es 'color'
-        
-        image_query = AttributeImage.objects.filter(
-            product=product,
-            attribute_value__attribute__slug=color_attribute_slug
-        ).order_by('orden_visualizacion')
-
+        image_query = AttributeImage.objects.filter(product=product).order_by('orden_visualizacion')
         for attr_img in image_query:
             attribute_images_map[attr_img.attribute_value_id].append(attr_img.image.url)
 
-        # 3. PREPARAR DATOS PARA JSON
         variants_data = {
             'attributes_definition': [],
             'variants': [],
@@ -454,14 +269,10 @@ class ProductDetailView(DetailView):
             'default_variant_id': None
         }
         
-        # 4. DEFINIR ATRIBUTOS Y SUS OPCIONES DISPONIBLES
+        visual_attribute_slug = product.visual_attribute.slug if product.visual_attribute else 'color'
+        
         for attribute in product.configurable_attributes.all().order_by('nombre'):
-            options = sorted(list(
-                variants_queryset.filter(options__attribute=attribute)
-                                 .values_list('options__value', flat=True)
-                                 .distinct()
-            ))
-            
+            options = sorted(list(variants_queryset.filter(options__attribute=attribute).values_list('options__value', flat=True).distinct()))
             if options:
                 if attribute.slug == 'talla':
                     size_order = ['S', 'M', 'L', 'XL', '2XL', '3XL']
@@ -470,92 +281,65 @@ class ProductDetailView(DetailView):
                 variants_data['attributes_definition'].append({
                     'id_slug': attribute.slug,
                     'name': attribute.nombre,
-                    'type': 'image_swatch' if attribute.slug == color_attribute_slug else 'button',
+                    'type': 'image_swatch' if attribute.slug == visual_attribute_slug else 'button',
                     'options_display_order': options
                 })
         
-        # 5. SERIALIZAR CADA VARIANTE
         for variant in variants_queryset:
             variant_dict = {
-                'id': variant.id,
-                'sku': variant.sku,
-                'price': str(variant.precio_variante),
-                'stock': variant.stock_disponible,
-                'is_active': variant.activo,
-                'attribute_options': {},
-                'images': []
+                'id': variant.id, 'sku': variant.sku, 'price': str(variant.precio_variante),
+                'stock': variant.stock_disponible, 'is_active': variant.activo,
+                'attribute_options': {}, 'images': []
             }
-            color_value_id = None
+            visual_value_id = None
             for option in variant.options.all():
                 variant_dict['attribute_options'][option.attribute.slug] = option.value
-                if option.attribute.slug == color_attribute_slug:
-                    color_value_id = option.id
+                if option.attribute.slug == visual_attribute_slug:
+                    visual_value_id = option.id
             
-            if color_value_id and color_value_id in attribute_images_map:
-                variant_dict['images'] = attribute_images_map[color_value_id]
+            if visual_value_id and visual_value_id in attribute_images_map:
+                variant_dict['images'] = attribute_images_map[visual_value_id]
 
             if product.acepta_cuotas and variant.precio_variante and product.numero_de_cuotas > 0:
                 cuota_mensual = variant.precio_variante / product.numero_de_cuotas
-                variant_dict['cuotas'] = {
-                    'numero': product.numero_de_cuotas,
-                    'monto_mensual': f"{cuota_mensual:.2f}"
-                }
+                variant_dict['cuotas'] = {'numero': product.numero_de_cuotas, 'monto_mensual': f"{cuota_mensual:.2f}"}
             
             variants_data['variants'].append(variant_dict)
             
-
-        # 6. ESTABLECER VARIANTE POR DEFECTO
-        # La primera variante activa con stock es una buena candidata
-        default_variant = variants_queryset.filter(stock_disponible__gt=0).first()
-        if not default_variant:
-            default_variant = variants_queryset.first() # Fallback a la primera activa
-        
+        default_variant = variants_queryset.filter(stock_disponible__gt=0).first() or variants_queryset.first()
         if default_variant:
             variants_data['default_variant_id'] = default_variant.id
 
-        # 7. FINALIZAR CONTEXTO
-        # en la penúltima línea de get_context_data...
-        context['variants_data_json'] = variants_data # <--- ¡SOLO EL DICCIONARIO!
+        context['variants_data_json'] = variants_data
         return context
     
+# =============================================================================
+#  VISTA DE OFERTAS
+# =============================================================================
 def sale_product_list_view(request):
-    """
-    Muestra una lista de VARIANTES en oferta y precarga los datos necesarios
-    para que la tarjeta pueda construir un carrusel de imágenes.
-    AHORA CON PAGINACIÓN.
-    """
-    
-    # Preparamos un prefetch para las imágenes, ya ordenadas
     prefetch_images = Prefetch(
         'product__attribute_images',
-        queryset=AttributeImage.objects.order_by('orden_visualizacion'),
+        queryset=AttributeImage.objects.select_related('attribute_value').order_by('orden_visualizacion'),
         to_attr='prefetched_images'
     )
 
-    # 1. Obtenemos TODAS las variantes en oferta, como antes
     all_sale_variants = ProductVariant.objects.filter(
-        activo=True,
-        stock_disponible__gt=0,
-        product__activo=True,
+        activo=True, stock_disponible__gt=0, product__activo=True,
         precio_variante__lt=F('product__precio_base')
     ).select_related(
-        'product', 'product__brand', 'product__supplier'
+        'product', 'product__brand', 'product__supplier', 'product__visual_attribute'
     ).prefetch_related(
-        'options__attribute',
-        prefetch_images
+        'options__attribute', prefetch_images
     ).order_by('-product__destacado', '-product__creado')
 
-    # 2. APLICAMOS LA PAGINACIÓN
-    paginator = Paginator(all_sale_variants, 12) # Muestra 12 ofertas por página
+    paginator = Paginator(all_sale_variants, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # 3. PASAMOS EL OBJETO DE PÁGINA AL CONTEXTO
-    # La plantilla ahora usará 'page_obj' para el bucle for
     context = {
-        'page_obj': page_obj, # ¡LA CLAVE ESTÁ AQUÍ!
-        'is_paginated': page_obj.has_other_pages(), # Le decimos a la plantilla si hay más de una página
-        'paginator': paginator, # Pasamos el paginador para la lógica de los números
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'paginator': paginator,
         'titulo_pagina': "Ofertas Imperdibles"
     }
     return render(request, 'myproducts/sale_list.html', context)

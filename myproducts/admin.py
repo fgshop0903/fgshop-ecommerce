@@ -103,7 +103,7 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('precio_base', 'acepta_cuotas', 'numero_de_cuotas', 'calculo_cuota_mensual'),
         }),
         ("Configuración para Variantes", {
-            'fields': ('configurable_attributes',),
+            'fields': ('visual_attribute', 'configurable_attributes',), 
             'description': "Selecciona atributos. Guarda. Luego usa la acción 'Generar/Actualizar variantes'."
         }),
     )
