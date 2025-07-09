@@ -233,35 +233,47 @@ class ProductVariant(models.Model):
     def get_visual_image_url(self):
         """
         Obtiene la URL de la imagen principal basada en el atributo visual del producto.
-        Este método está optimizado para funcionar con los datos precargados (prefetched) de las vistas.
+        Este método está optimizado para funcionar con los datos precargados,
+        pero también funciona de forma segura si no se precargaron.
         """
-        # Si la vista no precargó los datos necesarios, no podemos hacer nada.
-        if not hasattr(self.product, 'visual_attribute') or not hasattr(self.product, 'prefetched_images'):
-            return None
-
         # 1. Determinar el slug del atributo que estamos buscando (ej. 'color', 'sabor')
         visual_slug = self.product.visual_attribute.slug if self.product.visual_attribute else 'color'
 
         # 2. Encontrar la opción de ESTA variante que corresponde a ese atributo
         visual_option = None
-        # self.options.all() usa los datos precargados si la vista los proveyó
-        for option in self.options.all(): 
+        # self.options.all() usará datos precargados si existen
+        for option in self.options.all():
             if option.attribute.slug == visual_slug:
                 visual_option = option
                 break
         
-        # 3. Si encontramos la opción, buscar su imagen en la lista de imágenes precargadas
+        # 3. Si encontramos la opción, buscar su imagen
         if visual_option:
-            # Iteramos sobre la lista de imágenes que la vista ya trajo de la BD
-            for image in self.product.prefetched_images:
-                if image.attribute_value_id == visual_option.id:
-                    return image.image.url # ¡Éxito! La encontramos.
+            # PRIMERO: Intenta usar las imágenes precargadas si existen (MODO RÁPIDO)
+            if hasattr(self.product, 'prefetched_images'):
+                for image in self.product.prefetched_images:
+                    if image.attribute_value_id == visual_option.id:
+                        return image.image.url
+            
+            # SEGUNDO: Si no hay precargadas, haz una consulta a la BD (MODO SEGURO)
+            # Esto soluciona el problema en el carrito
+            image = AttributeImage.objects.filter(
+                product=self.product,
+                attribute_value=visual_option
+            ).first()
+            if image:
+                return image.image.url
 
-        # 4. Fallback: Si no se encontró una imagen específica, devolver la primera imagen del producto.
+        # 4. Fallback: Si no se encontró imagen para la opción, devolver la primera del producto
         if hasattr(self.product, 'prefetched_images') and self.product.prefetched_images:
             return self.product.prefetched_images[0].image.url
+        
+        # Fallback final si tampoco hay precargadas
+        first_image = self.product.attribute_images.first()
+        if first_image:
+            return first_image.image.url
 
-        return None
+        return None # No se encontró ninguna imagen en absoluto
 
 # --- CAMBIO 1: NUEVO MODELO PARA GESTIONAR IMÁGENES POR ATRIBUTO ---
 
