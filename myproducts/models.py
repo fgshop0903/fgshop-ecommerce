@@ -160,6 +160,11 @@ class Product(models.Model):
         verbose_name="Atributo Visual Principal",
         help_text="El atributo que controla las imágenes (ej. Color para ropa, Sabor para suplementos)."
     )
+    use_variant_specific_images = models.BooleanField(
+        default=False,
+        verbose_name="Usar Imágenes por Variante Específica",
+        help_text="Marcar si las imágenes dependen de la variante completa (ej. por peso) en lugar del atributo visual (ej. color)."
+    )
     acepta_cuotas = models.BooleanField(
         default=False,
         verbose_name="Acepta pago en cuotas",
@@ -309,19 +314,60 @@ class AttributeImage(models.Model):
     Ej: Para el "Polo Tommy", asocia 5 imágenes al valor "Color: Negro".
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attribute_images', null=True, blank=True)
-    attribute_value = models.ForeignKey(AttributeValue, on_delete=models.CASCADE, related_name='images', help_text="Asocia imágenes a un valor (ej. 'Color: Negro')")
+    attribute_value = models.ForeignKey(
+        AttributeValue, 
+        on_delete=models.CASCADE, 
+        related_name='images', 
+        help_text="Asocia imágenes a un valor de atributo (ej. 'Color: Negro'). Usar para el modo de imagen estándar.",
+        null=True,  # Hacemos que sea opcional
+        blank=True
+    )
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        related_name='specific_images',
+        help_text="Asocia esta imagen a una variante específica. Usar solo si se marcó 'Usar Imágenes por Variante'.",
+        null=True, # Hacemos que sea opcional
+        blank=True
+    )
     image = models.ImageField(upload_to='attribute_images/%Y/%m/%d/')
     alt_text = models.CharField(max_length=255, blank=True)
     orden_visualizacion = models.PositiveIntegerField(default=0)
 
     class Meta:
-        verbose_name = "Imagen de Atributo (por Color)"
-        verbose_name_plural = "Imágenes de Atributos (por Color)"
+        verbose_name = "Imagen de Producto"
+        verbose_name_plural = "Imágenes de Productos"
         ordering = ['orden_visualizacion']
-        unique_together = ('product', 'attribute_value', 'image') # Evita duplicados
+
+        # --- ¡AQUÍ ESTÁ LA MAGIA NUEVA! ---
+    @property
+    def visual_attribute_value(self):
+        """
+        Devuelve el AttributeValue del atributo visual principal.
+        - Si está asignado directamente, lo devuelve.
+        - Si la imagen está asignada a una variante, lo infiere de la variante.
+        """
+        # Si ya tiene un attribute_value, ese es el que manda (Modo Estándar)
+        if self.attribute_value:
+            return self.attribute_value
+        
+        # Si está asignado a una variante (Modo Avanzado)
+        if self.variant and self.product and self.product.visual_attribute:
+            # Busca la opción de la variante que coincide con el atributo visual del producto
+            for option in self.variant.options.all():
+                if option.attribute_id == self.product.visual_attribute_id:
+                    return option # Devuelve el AttributeValue (ej. "Sabor: Vainilla")
+        
+        return None
+    # --- FIN DE LA MAGIA ---
+        
 
     def __str__(self):
-        return f"Imagen para {self.product.nombre} - {self.attribute_value}"
+        if self.variant:
+            return f"Imagen para la variante {self.variant}"
+        elif self.attribute_value:
+            return f"Imagen para {self.product.nombre} - {self.attribute_value}"
+        return f"Imagen para {self.product.nombre}"
 
 class EspecificacionPlantilla(models.Model):
     nombre = models.CharField(max_length=100, unique=True, help_text="Ej: 'Plantilla para Ropa', 'Plantilla para Celulares'")

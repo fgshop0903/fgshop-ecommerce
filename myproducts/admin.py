@@ -51,8 +51,8 @@ def generate_variants_action(modeladmin, request, queryset):
 class AttributeImageInline(admin.TabularInline):
     model = AttributeImage
     extra = 1
-    verbose_name_plural = "1. Gestión de Imágenes por Atributo"
-    fields = ('attribute_value', 'image', 'orden_visualizacion', 'alt_text', 'image_preview')
+    verbose_name_plural = "Gestión de Imágenes (Estándar o por Variante)"
+    fields = ('image_preview', 'image', 'variant', 'attribute_value', 'orden_visualizacion', 'alt_text')
     readonly_fields = ('image_preview',)
 
     def image_preview(self, obj):
@@ -60,13 +60,20 @@ class AttributeImageInline(admin.TabularInline):
     image_preview.short_description = "Vista Previa"
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        object_id = request.resolver_match.kwargs.get('object_id')
+        if not object_id:
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        
+        product = get_object_or_404(Product, pk=object_id)
+        
+        # Filtramos el dropdown de 'attribute_value' como antes
         if db_field.name == "attribute_value":
-            object_id = request.resolver_match.kwargs.get('object_id')
-            product = Product.objects.get(pk=object_id) if object_id else None
-            if product:
-                kwargs["queryset"] = AttributeValue.objects.filter(attribute__in=product.configurable_attributes.all())
-            else:
-                kwargs["queryset"] = AttributeValue.objects.none()
+            kwargs["queryset"] = AttributeValue.objects.filter(attribute__in=product.configurable_attributes.all())
+        
+        # --- AÑADIMOS ESTO PARA FILTRAR EL DROPDOWN DE VARIANTES ---
+        if db_field.name == "variant":
+            kwargs["queryset"] = ProductVariant.objects.filter(product=product)
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 class ProductVariantInline(admin.TabularInline):
@@ -95,6 +102,14 @@ class ProductAdmin(admin.ModelAdmin):
         ("Información General", {
             'fields': ('nombre', 'slug', 'categoria', 'brand', 'supplier', ('activo', 'destacado'))
         }),
+        ("Configuración de Imágenes y Variantes", {
+            'fields': (
+                'use_variant_specific_images', 
+                'visual_attribute', 
+                'configurable_attributes',
+            ), 
+            'description': "Selecciona el modo de imagen y los atributos. Guarda. Luego gestiona las imágenes abajo o usa las acciones del menú."
+        }),
         ("Descripción y Especificaciones", {
             'classes': ('collapse',),
             'fields': ('descripcion', 'especificaciones'),
@@ -102,11 +117,8 @@ class ProductAdmin(admin.ModelAdmin):
         ("Precio y Pagos", {
             'fields': ('precio_base', 'acepta_cuotas', 'numero_de_cuotas', 'calculo_cuota_mensual'),
         }),
-        ("Configuración para Variantes", {
-            'fields': ('visual_attribute', 'configurable_attributes',), 
-            'description': "Selecciona atributos. Guarda. Luego usa la acción 'Generar/Actualizar variantes'."
-        }),
     )
+    
     readonly_fields = ('calculo_cuota_mensual',)
 
     class Media:

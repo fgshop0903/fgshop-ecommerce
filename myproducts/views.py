@@ -52,9 +52,13 @@ class ProductListOptimizationMixin:
                 queryset=ProductVariant.objects.filter(activo=True).prefetch_related('options__attribute'),
                 to_attr='active_variants'
             ),
+            # ESTA ES LA PRECARGA COMPLETA Y CORRECTA
             Prefetch(
                 'attribute_images',
-                queryset=AttributeImage.objects.select_related('attribute_value').order_by('orden_visualizacion'),
+                queryset=AttributeImage.objects.select_related(
+                    'attribute_value__attribute', 
+                    'variant__product__visual_attribute'
+                ).prefetch_related('variant__options__attribute'),
                 to_attr='prefetched_images'
             )
         )
@@ -63,40 +67,39 @@ class ProductListOptimizationMixin:
         context = super().get_context_data(**kwargs)
         products_list = context.get(self.context_object_name, [])
 
-        images_map = defaultdict(lambda: defaultdict(list))
-        for product in products_list:
-            if hasattr(product, 'prefetched_images'):
-                for img in product.prefetched_images:
-                    images_map[product.id][img.attribute_value_id].append(img.image.url)
-
+        # Bucle para enriquecer cada producto
         for producto in products_list:
-            visual_attribute_slug = producto.visual_attribute.slug if producto.visual_attribute else 'color'
+            # Asignar la imagen principal
+            producto.main_image_url = ''
+            if hasattr(producto, 'prefetched_images') and producto.prefetched_images:
+                producto.main_image_url = producto.prefetched_images[0].image.url
+
+            # --- ¡LA LÍNEA QUE FALTABA ESTÁ AQUÍ! ---
+            # Asignar la variante por defecto para la tarjeta
             sorted_variants = sorted(getattr(producto, 'active_variants', []), key=lambda v: v.precio_variante)
             producto.variant_to_display = sorted_variants[0] if sorted_variants else None
-            
-            producto.main_image_url = ''
-            if producto.variant_to_display:
-                visual_option = next((opt for opt in producto.variant_to_display.options.all() if opt.attribute.slug == visual_attribute_slug), None)
-                if visual_option and images_map[producto.id][visual_option.id]:
-                    producto.main_image_url = images_map[producto.id][visual_option.id][0]
+            # --- FIN DE LA LÍNEA AÑADIDA ---
 
-            if not producto.main_image_url and hasattr(producto, 'prefetched_images') and producto.prefetched_images:
-                producto.main_image_url = producto.prefetched_images[0].image.url
-            
+            # Construir los swatches usando la nueva propiedad inteligente del modelo
             producto.visual_options = []
             unique_visuals = set()
-            if hasattr(producto, 'active_variants'):
-                for variant in producto.active_variants:
-                    for option in variant.options.all():
-                        if option.attribute.slug == visual_attribute_slug and option.value not in unique_visuals:
-                            unique_visuals.add(option.value)
-                            all_images = images_map.get(producto.id, {}).get(option.id, [])
-                            if all_images:
-                                producto.visual_options.append({
-                                    'name': option.value,
-                                    'code': option.color_code,
-                                    'images': all_images
-                                })
+            if hasattr(producto, 'prefetched_images'):
+                for img in producto.prefetched_images:
+                    visual_option = img.visual_attribute_value
+                    
+                    if visual_option and visual_option.value not in unique_visuals:
+                        unique_visuals.add(visual_option.value)
+                        
+                        all_images_for_option = [
+                            i.image.url for i in producto.prefetched_images 
+                            if i.visual_attribute_value and i.visual_attribute_value.id == visual_option.id
+                        ]
+                        
+                        producto.visual_options.append({
+                            'name': visual_option.value,
+                            'code': visual_option.color_code,
+                            'images': all_images_for_option
+                        })
         return context
 
 # =============================================================================
@@ -266,7 +269,8 @@ class ProductDetailView(DetailView):
             'attributes_definition': [],
             'variants': [],
             'product_base_price': str(product.precio_base) if product.precio_base else None,
-            'default_variant_id': None
+            'default_variant_id': None,
+            'use_variant_specific_images': product.use_variant_specific_images
         }
         
         visual_attribute_slug = product.visual_attribute.slug if product.visual_attribute else 'color'
@@ -289,7 +293,8 @@ class ProductDetailView(DetailView):
             variant_dict = {
                 'id': variant.id, 'sku': variant.sku, 'price': str(variant.precio_variante),
                 'stock': variant.stock_disponible, 'is_active': variant.activo,
-                'attribute_options': {}, 'images': []
+                'attribute_options': {}, 
+                'images': [img.image.url for img in variant.specific_images.all()]
             }
             visual_value_id = None
             for option in variant.options.all():
