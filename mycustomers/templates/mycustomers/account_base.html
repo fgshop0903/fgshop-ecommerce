@@ -1,0 +1,55 @@
+{# mycustomers/templates/mycustomers/account_base.html #}
+
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<div class="container my-4 my-md-5">
+    
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">Mi Cuenta</h1>
+            <p class="text-muted">
+                Hola de nuevo, <strong>{{ request.user.first_name|default:request.user.username }}</strong>. 
+                Aquí puedes gestionar tu información personal y ver tus pedidos.
+            </p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Columna para el Menú Lateral (CÓDIGO ÚNICO) -->
+        <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="list-group">
+                <a href="{% url 'mycustomers:profile_detail_self' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'profile_detail_self' %}active{% endif %}">
+                    <i class="bi bi-person-badge me-2"></i> Mi Perfil
+                </a>
+                <a href="{% url 'mysales:order_history' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
+                    <i class="bi bi-box-seam me-2"></i> Mis Pedidos
+                </a>
+                <a href="{% url 'mycustomers:address_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'address_list' %}active{% endif %}">
+                    <i class="bi bi-geo-alt me-2"></i> Mis Direcciones
+                </a>
+                <a href="{% url 'account_change_password' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'account_change_password' %}active{% endif %}">
+                    <i class="bi bi-key me-2"></i> Cambiar Contraseña
+                </a>
+                <a href="{% url 'account_logout' %}" class="list-group-item list-group-item-action text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- Columna para el Contenido Principal que cambiará en cada página -->
+        <div class="col-lg-9">
+            {% block account_content %}
+            <!-- El contenido específico de la página (Perfil, Pedidos, etc.) se insertará aquí -->
+            {% endblock account_content %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,98 +1,46 @@
-{% extends "core/base.html" %}
+{% extends "mycustomers/account_base.html" %}
 
-{% block title %}{{ titulo_pagina }} - FG Shop{% endblock %}
+{% block title %}Mi Perfil - FG Shop{% endblock %}
 
-{% block content %}
-<div class="container my-4 my-md-5">
-    
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="h2">Mi Cuenta</h1>
-            <p class="text-muted">
-                Hola de nuevo, 
-                <strong>
-                {% if profile.get_title %}
-                    {{ profile.get_title }} {{ profile.user.first_name|default:profile.user.username }}
-                {% else %}
-                    {{ profile.user.first_name|default:profile.user.username }}
-                {% endif %}
-                </strong>.
-                Aquí puedes gestionar tu información personal y ver tus pedidos.
-            </p>
+{% block account_content %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Información del Perfil</h5>
+            <a href="{% url 'mycustomers:profile_update' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil-square me-1"></i> Editar Perfil
+            </a>
         </div>
-    </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="row">
-        <!-- Menú Lateral (Sidebar) para Escritorio / Lista para Móvil -->
-        <div class="col-lg-3 mb-4 mb-lg-0">
-            <div class="list-group">
-                <a href="{% url 'mycustomers:profile_detail_self' %}" class="list-group-item list-group-item-action active" aria-current="true">
-                    <i class="bi bi-person-badge me-2"></i> Mi Perfil
-                </a>
-                <a href="#" class="list-group-item list-group-item-action">
-                    <i class="bi bi-box-seam me-2"></i> Mis Pedidos
-                </a>
-                <a href="#" class="list-group-item list-group-item-action">
-                    <i class="bi bi-geo-alt me-2"></i> Mis Direcciones
-                </a>
-                <a href="{% url 'account_change_password' %}" class="list-group-item list-group-item-action">
-                    <i class="bi bi-key me-2"></i> Cambiar Contraseña
-                </a>
-                <a href="{% url 'account_logout' %}" class="list-group-item list-group-item-action text-danger">
-                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-                </a>
-            </div>
-        </div>
-
-        <!-- Contenido Principal -->
-        <div class="col-lg-9">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Información del Perfil</h5>
-                    <a href="{% url 'mycustomers:profile_update' %}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-pencil-square me-1"></i> Editar Perfil
-                    </a>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Nombre Completo:</strong>
+                    <p class="text-muted mb-0">{{ profile.user.get_full_name|default:"No especificado" }}</p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <strong>Nombre Completo:</strong>
-                            <p class="text-muted mb-0">{{ profile.user.get_full_name|default:"No especificado" }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Nombre de Usuario:</strong>
-                            <p class="text-muted mb-0">{{ profile.user.username }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Correo Electrónico:</strong>
-                            <p class="text-muted mb-0">{{ profile.user.email }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>DNI:</strong>
-                            <p class="text-muted mb-0">{{ profile.DNI|default:"No especificado" }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Teléfono:</strong>
-                            <p class="text-muted mb-0">{{ profile.telefono|default:"No especificado" }}</p>
-                        </div>
-                         <div class="col-md-6 mb-3">
-                            <strong>Miembro desde:</strong>
-                            <p class="text-muted mb-0">{{ profile.user.date_joined|date:"d \d\e F \d\e Y" }}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <strong>Dirección Principal:</strong>
-                            <p class="text-muted mb-0">{{ profile.direccion|default:"No especificada"|linebreaksbr }}</p>
-                        </div>
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Nombre de Usuario:</strong>
+                    <p class="text-muted mb-0">{{ profile.user.username }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Correo Electrónico:</strong>
+                    <p class="text-muted mb-0">{{ profile.user.email }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>DNI:</strong>
+                    <p class="text-muted mb-0">{{ profile.DNI|default:"No especificado" }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Teléfono:</strong>
+                    <p class="text-muted mb-0">{{ profile.telefono|default:"No especificado" }}</p>
+                </div>
+                 <div class="col-md-6 mb-3">
+                    <strong>Miembro desde:</strong>
+                    <p class="text-muted mb-0">{{ profile.user.date_joined|date:"d \d\e F \d\e Y" }}</p>
+                </div>
+                <div class="col-md-12">
+                    <strong>Dirección Principal:</strong>
+                    <p class="text-muted mb-0">{{ profile.direccion|default:"No especificada"|linebreaksbr }}</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+{% endblock account_content %}

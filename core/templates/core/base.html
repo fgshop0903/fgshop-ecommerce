@@ -390,10 +390,19 @@
     <script src="{% static 'core/js/bootstrap.bundle.min.js' %}"></script>
 
     <script src="{% static 'core/js/custom_scripts.js' %}"></script> {# Para el JS del menú #}
+
+    <script>
+        // Inyectamos datos desde Django para que JavaScript los pueda leer
+        window.FGSHOP_USER_DATA = {
+            isAuthenticated: {{ user.is_authenticated|yesno:"true,false" }},
+            titlePreference: "{% if user.is_authenticated and user.customerprofile %}{{ user.customerprofile.title_preference }}{% endif %}"
+        };
+    </script>
+
     <script src="{% static 'core/js/title_chooser.js' %}"></script>
 
     <script src="{% static 'core/js/nav_active_state.js' %}"></script>
-
+    
 
     {% block extra_js %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -76,6 +76,6 @@ class DeliveryAdmin(admin.ModelAdmin):
     def order_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
-        link = reverse("admin:myorders_order_change", args=[obj.order.id])
+        link = reverse("admin:mysales_order_change", args=[obj.order.id])
         return format_html('<a href="{}">Ver Pedido #{}</a>', link, obj.order.id_display)
     order_link.short_description = "Pedido"

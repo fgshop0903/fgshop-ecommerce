@@ -4,8 +4,10 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from mysuppliers.models import Supplier
+from django.db.models import F
 import uuid # Necesario para la lógica de slug único
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # --- SIN CAMBIOS EN ESTOS MODELOS ---
 class Brand(models.Model):
@@ -290,22 +292,38 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=ProductVariant)
 def actualizar_estado_activo_variant_y_producto(sender, instance, **kwargs):
-    # Variante: Si stock = 0, desactiva; si stock > 0, activa
+    # Recargamos la instancia desde la BD para obtener el valor numérico real del stock
+    instance.refresh_from_db()
+
+    should_save_variant = False
     if instance.stock_disponible == 0 and instance.activo:
         instance.activo = False
-        instance.save(update_fields=['activo'])
+        should_save_variant = True
     elif instance.stock_disponible > 0 and not instance.activo:
         instance.activo = True
-        instance.save(update_fields=['activo'])
+        should_save_variant = True
 
-    # Producto maestro: Si todas las variantes están inactivas o sin stock, desactiva el producto
+    if should_save_variant:
+        # Desconectamos la señal para evitar un bucle infinito al guardar
+        post_save.disconnect(actualizar_estado_activo_variant_y_producto, sender=ProductVariant)
+        instance.save(update_fields=['activo'])
+        # Volvemos a conectar la señal
+        post_save.connect(actualizar_estado_activo_variant_y_producto, sender=ProductVariant)
+
+    # Lógica para activar/desactivar el producto maestro
     producto = instance.product
-    variantes_activas = producto.variants.filter(activo=True, stock_disponible__gt=0)
-    if not variantes_activas.exists() and producto.activo:
+    # Usamos .exists() que es más eficiente que cargar todos los objetos
+    variantes_activas_existen = producto.variants.filter(activo=True, stock_disponible__gt=0).exists()
+    
+    should_save_product = False
+    if not variantes_activas_existen and producto.activo:
         producto.activo = False
-        producto.save(update_fields=['activo'])
-    elif variantes_activas.exists() and not producto.activo:
+        should_save_product = True
+    elif variantes_activas_existen and not producto.activo:
         producto.activo = True
+        should_save_product = True
+
+    if should_save_product:
         producto.save(update_fields=['activo'])
 
 class AttributeImage(models.Model):

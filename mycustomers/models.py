@@ -79,3 +79,25 @@ class CustomerProfile(models.Model):
     @property
     def correo_electronico(self):
         return self.user.email
+    
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses', verbose_name="Usuario")
+    nombre_direccion = models.CharField(max_length=100, help_text="Ej: 'Casa', 'Oficina de Mamá'")
+    
+    # Podríamos tener campos separados o uno solo. Usemos separados para más flexibilidad.
+    destinatario = models.CharField(max_length=200, verbose_name="Nombre del Destinatario")
+    direccion = models.CharField(max_length=255, verbose_name="Dirección (Calle, número, etc.)")
+    ciudad = models.CharField(max_length=100, verbose_name="Ciudad")
+    departamento = models.CharField(max_length=100, verbose_name="Departamento / Región")
+    pais = models.CharField(max_length=100, default="Perú")
+    telefono_contacto = models.CharField(max_length=20, blank=True, verbose_name="Teléfono de Contacto")
+    
+    es_principal = models.BooleanField(default=False, verbose_name="¿Es dirección principal?")
+
+    class Meta:
+        verbose_name = "Dirección"
+        verbose_name_plural = "Direcciones"
+        ordering = ['-es_principal', 'nombre_direccion'] # Mostrar la principal primero
+
+    def __str__(self):
+        return f"Dirección '{self.nombre_direccion}' de {self.user.username}"

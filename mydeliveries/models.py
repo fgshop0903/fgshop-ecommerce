@@ -1,6 +1,6 @@
 from django.db import models
 from django.urls import reverse
-from myorders.models import Order # Ya usas el Order mejorado
+from mysales.models import Order # Ya usas el Order mejorado
 # from mysuppliers.models import Supplier # Podrías enlazar si un envío viene directo de un proveedor
 
 # Podrías tener una lista de transportistas predefinidos o un modelo para ellos

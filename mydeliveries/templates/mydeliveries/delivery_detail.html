@@ -99,11 +99,11 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Pedido Asociado</h5>
-                    <a href="{% url 'admin:myorders_order_change' delivery.order.pk %}" class="btn btn-sm btn-outline-info">Ver en Admin Pedidos</a>
+                    <a href="{% url 'admin:mysales_order_change' delivery.order.pk %}" class="btn btn-sm btn-outline-info">Ver en Admin Pedidos</a>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
-                        <strong>ID Pedido:</strong> <a href="{% url 'myorders:order_detail_admin' delivery.order.id %}">#{{ delivery.order.id_display }}</a>
+                        <strong>ID Pedido:</strong> <a href="{% url 'mysales:order_detail_admin' delivery.order.id %}">#{{ delivery.order.id_display }}</a>
                     </li>
                     <li class="list-group-item">
                         <strong>Cliente:</strong> {{ delivery.order.nombre_cliente|default:delivery.order.user.get_full_name|default:delivery.order.user.username }}

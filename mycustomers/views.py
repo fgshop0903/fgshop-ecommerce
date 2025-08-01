@@ -11,6 +11,7 @@ from .models import CustomerProfile
 from .forms import CustomerProfileForm, UserUpdateForm # Ya no importamos CustomUserCreationForm
 # Si creaste CustomLoginFormAllauth y CustomSignupFormAllauth y los usas en settings.py para allauth,
 # no necesitas importarlos aquí A MENOS QUE tengas vistas en este archivo que los usen directamente.
+from .models import CustomerProfile, Address
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -103,3 +104,18 @@ class CustomerListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Lista de Clientes"
         return context
+    
+class AddressListView(LoginRequiredMixin, ListView):
+    model = Address
+    template_name = 'mycustomers/address_list.html'
+    context_object_name = 'addresses'
+
+    def get_queryset(self):
+        # Filtra las direcciones para mostrar solo las del usuario que ha iniciado sesión
+        return Address.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Mis Direcciones"
+        return context
+    

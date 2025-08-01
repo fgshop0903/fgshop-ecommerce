@@ -13,10 +13,10 @@
                 {% csrf_token %}
                 
                 <h4>Datos Personales (Usuario)</h4>
-                {{ form2|crispy }} {# form2 es UserUpdateForm #}
+                {{ form2|crispy }}
                 
                 <h4 class="mt-4">Datos Adicionales (Perfil)</h4>
-                {{ form|crispy }} {# form es CustomerProfileForm #}
+                {{ form|crispy }}
 
                 <button type="submit" class="btn btn-primary mt-4">Guardar Cambios</button>
                 <a href="{% url 'mycustomers:profile_detail_self' %}" class="btn btn-outline-secondary mt-4">Cancelar</a>

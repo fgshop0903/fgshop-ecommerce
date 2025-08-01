@@ -57,12 +57,10 @@
                         <td colspan="3" class="text-end">Costo de Envío:</td>
                         <td class="text-end">S/. {{ order.costo_envio|floatformat:2|intcomma }}</td>
                     </tr>
-                    {# Si tienes impuestos
                     <tr>
                         <td colspan="3" class="text-end">Impuestos (IGV):</td>
                         <td class="text-end">S/. {{ order.impuestos|floatformat:2|intcomma }}</td>
                     </tr>
-                    #}
                     <tr class="fs-5">
                         <td colspan="3" class="text-end fw-bolder">Total del Pedido:</td>
                         <td class="text-end fw-bolder">S/. {{ order.total_pedido|floatformat:2|intcomma }}</td>
@@ -80,7 +78,7 @@
             <div class="card mb-3">
                 <div class="card-header">Información del Pedido</div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>ID Pedido:</strong> #{{ order.id_display }}</li>
+                    <li class="list-group-item"><strong>ID Pedido:</strong> {{ order.id_display }}</li>
                     <li class="list-group-item"><strong>Fecha:</strong> {{ order.fecha_pedido|date:"d M Y, H:i" }}</li>
                     <li class="list-group-item"><strong>Cliente:</strong> {{ order.nombre_cliente|default:order.user.get_full_name|default:order.user.username }}</li>
                     <li class="list-group-item"><strong>Email:</strong> {{ order.email_cliente|default:order.user.email }}</li>
@@ -107,7 +105,6 @@
                 <div class="card-body">
                     <p class="card-text">
                         {{ order.direccion_facturacion|linebreaksbr }}
-                        {# ... más datos de facturación ... #}
                     </p>
                 </div>
             </div>
@@ -124,11 +121,14 @@
 
     <div class="mt-4">
         {% if request.user.is_staff %}
-            <a href="{% url 'admin:myorders_order_change' order.pk %}" class="btn btn-info">Gestionar en Admin</a>
-            <a href="{% url 'myorders:order_list_admin' %}" class="btn btn-outline-secondary">Volver al Listado (Admin)</a>
+            <a href="{% url 'admin:mysales_order_change' order.pk %}" class="btn btn-info">Gestionar en Admin</a>
+            <a href="{% url 'mysales:order_list_admin' %}" class="btn btn-outline-secondary">Volver al Listado (Admin)</a>
         {% else %}
-            <a href="{% url 'myorders:order_history' %}" class="btn btn-outline-secondary">Volver a Mis Pedidos</a>
+            <a href="{% url 'mysales:order_history' %}" class="btn btn-outline-secondary">Volver a Mis Pedidos</a>
         {% endif %}
+        <a href="{% url 'mysales:order_nota_venta_pdf' order.id %}" class="btn btn-primary" target="_blank">
+            <i class="fas fa-download me-2"></i>Descargar Nota de Venta
+        </a>
     </div>
 </div>
 {% endblock %}

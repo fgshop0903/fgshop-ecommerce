@@ -1,0 +1,42 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo_pagina }} - FG Shop{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'myproducts/css/product_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="h2 page-title">{{ titulo_pagina }}</h1>
+        <p class="lead text-muted">Encuentra lo que buscas navegando a través de nuestras categorías principales.</p>
+    </div>
+
+    {% if categories %}
+    <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for category in categories %}
+        <div class="col d-flex align-items-stretch">
+            <a href="{{ category.get_absolute_url }}" class="card text-decoration-none category-card h-100 w-100">
+                {% if category.imagen_categoria %}
+                    <img src="{{ category.imagen_categoria.url }}" class="card-img-top" alt="{{ category.nombre }}">
+                {% else %}
+                    <!-- Placeholder por si una categoría no tiene imagen -->
+                    <img src="https://via.placeholder.com/300x200.png?text={{ category.nombre|urlencode }}" class="card-img-top" alt="{{ category.nombre }}">
+                {% endif %}
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title category-card-title mt-auto">{{ category.nombre }}</h5>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No hay categorías disponibles en este momento. Vuelve a visitarnos pronto.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock content %}

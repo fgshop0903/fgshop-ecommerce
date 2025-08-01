@@ -51,11 +51,12 @@ INSTALLED_APPS = [
     # Tus apps
     'core.apps.CoreConfig',
     'myproducts.apps.MyproductsConfig',
-    'myorders.apps.MyordersConfig',
+    'mysales.apps.mysalesConfig',
     'mycustomers.apps.MycustomersConfig',
     'mysuppliers.apps.MysuppliersConfig',
     'mydeliveries.apps.MydeliveriesConfig',
     'mycart.apps.MycartConfig',
+    'mypurchases.apps.MypurchasesConfig',
 
     # Apps de Allauth
     'allauth',
@@ -124,6 +125,8 @@ DATABASES = {
 STATIC_URL = '/static/'
 # Directorio donde `collectstatic` reunirá todos los archivos estáticos para producción.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # URL para los archivos de medios.
 MEDIA_URL = '/media/'

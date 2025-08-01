@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from .models import Delivery
-from myorders.models import Order # Para la vista de seguimiento
+from mysales.models import Order # Para la vista de seguimiento
 from .forms import DeliveryForm, PublicTrackingForm
 import uuid # Para manejar el UUID del pedido
 

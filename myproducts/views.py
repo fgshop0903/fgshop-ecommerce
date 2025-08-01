@@ -348,3 +348,19 @@ def sale_product_list_view(request):
         'titulo_pagina': "Ofertas Imperdibles"
     }
     return render(request, 'myproducts/sale_list.html', context)
+
+class CategoryListView(ListView):
+    model = Categoria
+    template_name = 'myproducts/category_list.html'
+    context_object_name = 'categories'
+
+    def get_queryset(self):
+        # Solo queremos mostrar las categorías principales, las que no tienen padre.
+        # El prefetch_related es una optimización para cargar las imágenes de forma eficiente.
+        return Categoria.objects.filter(padre__isnull=True).prefetch_related('subcategorias').order_by('nombre')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Explora Nuestras Categorías"
+        return context
+

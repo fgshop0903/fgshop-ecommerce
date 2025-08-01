@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Delivery
-from myorders.models import Order 
+from mysales.models import Order 
 
 @receiver(post_save, sender=Delivery)
 def actualizar_estado_del_pedido(sender, instance, **kwargs):
