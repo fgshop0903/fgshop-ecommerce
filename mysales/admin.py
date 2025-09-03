@@ -30,6 +30,18 @@ class InstallmentPaymentInline(admin.TabularInline):
     model = InstallmentPayment
     extra = 1
 
+    fields = ('payment_date', 'amount_paid', 'receipt_file', 'notes', 'receipt_pdf_link')
+    readonly_fields = ('receipt_pdf_link',) # Hacemos que el enlace sea de solo lectura
+
+    # --- ¡CAMBIO 2: La función que crea el enlace de descarga! ---
+    def receipt_pdf_link(self, obj):
+        # El 'obj' aquí es una instancia de InstallmentPayment
+        if obj.pk: # Solo mostramos el enlace si el pago ya ha sido guardado
+            url = reverse('mysales:installment_payment_receipt_pdf', args=[obj.id])
+            return format_html('<a href="{}" class="button" target="_blank">Recibo PDF</a>', url)
+        return "Guarda para generar el recibo" # Mensaje para pagos nuevos
+    receipt_pdf_link.short_description = 'Descargar Recibo'
+
 # =============================================================================
 #  ADMIN PARA VENTAS AL CONTADO
 # =============================================================================
@@ -62,7 +74,7 @@ class OrderAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
             # Cuando una orden ya existe, añadimos el botón a la lista.
-            return ['id', 'fecha_pedido', 'actualizado', 'subtotal', 'total_pedido', 'user_display_link', 'descargar_nota_venta_link']
+            return ['id', 'fecha_pedido', 'actualizado', 'subtotal', 'total_pedido', 'user_display_link', 'descargar_nota_venta_link','descargar_orden_pedido_link']
         return ['id', 'fecha_pedido', 'actualizado', 'subtotal', 'total_pedido']
 
     def get_fieldsets(self, request, obj=None):
@@ -82,7 +94,7 @@ class OrderAdmin(admin.ModelAdmin):
         # --- ¡CAMBIO #2: SI LA ORDEN EXISTE, AÑADIMOS UNA NUEVA SECCIÓN PARA ACCIONES! ---
         if obj:
             acciones_fieldset = ("Acciones Rápidas", {
-                'fields': ('descargar_nota_venta_link',),
+                'fields': ('descargar_nota_venta_link', 'descargar_orden_pedido_link'),
                 'description': 'Usa este botón para descargar la Nota de Venta y enviarla manualmente al cliente (ej. por WhatsApp).'
             })
             # Insertamos la nueva sección justo después de la información del pedido
@@ -134,6 +146,13 @@ class OrderAdmin(admin.ModelAdmin):
         super().save_related(request, form, formsets, change)
         form.instance.calcular_totales()
 
+    def descargar_orden_pedido_link(self, obj):
+    # Apuntamos a la nueva URL 'order_pedido_pdf'
+        url = reverse('mysales:order_pedido_pdf', args=[obj.id])
+        # Cambiamos el texto del botón
+        return format_html('<a href="{}" class="button" target="_blank">PDF de Pedido (para cliente)</a>', url)
+    descargar_orden_pedido_link.short_description = 'Orden de Pedido'
+
       
 
 @admin.register(OrderItem)
@@ -157,7 +176,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 # =============================================================================
 @admin.register(InstallmentSale)
 class InstallmentSaleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer_name', 'variant', 'sale_date', 'status', 'total_credit_price')
+    list_display = ('id', 'customer_name', 'variant', 'sale_date', 'status', 'total_credit_price', 'agreement_pdf_link')
     list_filter = ('status', 'sale_date')
     search_fields = ('customer_name', 'customer_dni', 'user__username', 'variant__product__nombre')
     raw_id_fields = ('user', 'variant')
@@ -170,7 +189,7 @@ class InstallmentSaleAdmin(admin.ModelAdmin):
             'fields': ('user', ('customer_name', 'customer_dni'), ('customer_phone', 'customer_email'))
         }),
         ("Detalles del Producto y Acuerdo", {
-            'fields': ('variant', 'sale_date', 'status')
+            'fields': ('variant', 'sale_date', 'fecha_primer_pago', 'status')
         }),
         ("Términos del Crédito", {
             'fields': ('product_cash_price', 'initial_payment', 'interest_rate', 'number_of_installments', 'installment_amount', 'total_credit_price')
@@ -198,3 +217,8 @@ class InstallmentSaleAdmin(admin.ModelAdmin):
                     obj.customer_phone = obj.user.customerprofile.telefono
         
         super().save_model(request, obj, form, change)
+
+    def agreement_pdf_link(self, obj):
+        url = reverse('mysales:installment_sale_agreement_pdf', args=[obj.id])
+        return format_html('<a href="{}" class="button" target="_blank">Acuerdo PDF</a>', url)
+    agreement_pdf_link.short_description = 'Acuerdo PDF'

@@ -1,0 +1,68 @@
+{# mysales/templates/mysales/recibo_pago_cuota_pdf_template.html #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago de Cuota - {{ payment.id }}</title>
+    <style>
+        @page { size: a4 portrait; margin: 1.5cm; }
+        body { font-family: "Helvetica", sans-serif; font-size: 11px; color: #333; }
+        .header .logo-container { text-align: center; padding-bottom: 10px; }
+        .header .logo-container img { width: 150pt; height: auto; }
+        .header p { text-align: center; margin-top: -5px; }
+        .document-title { font-size: 16px; text-align: center; background-color: #f2f2f2; padding: 8px; margin-bottom: 20px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .info-table td { padding: 6px; border-bottom: 1px solid #eee; }
+        .info-table .label { font-weight: bold; width: 40%; }
+        .total-paid { text-align: center; margin-top: 25px; padding: 15px; border: 1px solid #333; background-color: #f9f9f9;}
+        .total-paid .amount { font-size: 20px; font-weight: bold; color: #007bff; }
+        .footer { text-align: center; font-size: 9px; color: #888; position: fixed; bottom: -30px; left: 0px; right: 0px;}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            {% if logo_path %}<img src="{{ logo_path }}">{% else %}<h1 style="font-size: 24px;">FGSHOP</h1>{% endif %}
+        </div>
+        <p>Email: fgshop0903@gmail.com | Celular: +51 938 709 302</p>
+    </div>
+
+    <h2 class="document-title">RECIBO DE PAGO DE CUOTA</h2>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">Recibo N°:</td>
+            <td>PAY-{{ payment.id }}</td>
+        </tr>
+        <tr>
+            <td class="label">Referencia del Acuerdo:</td>
+            <td>INST-{{ payment.installment_sale.id }}</td>
+        </tr>
+        <tr>
+            <td class="label">Cliente:</td>
+            <td>{{ payment.installment_sale.customer_name }}</td>
+        </tr>
+        <tr>
+            <td class="label">Producto:</td>
+            <td>{{ payment.installment_sale.variant }}</td>
+        </tr>
+        <tr>
+            <td class="label">Fecha de Pago:</td>
+            <td>{{ payment.payment_date|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Corresponde a:</td>
+            <td><strong>Cuota N° {{ numero_cuota }} de {{ total_cuotas }}</strong></td>
+        </tr>
+    </table>
+    
+    <div class="total-paid">
+        <p style="margin: 0; font-size: 14px;">MONTO RECIBIDO</p>
+        <p class="amount" style="margin: 5px 0 0 0;">S/ {{ payment.amount_paid|floatformat:2 }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Este documento acredita la recepción de un pago de cuota para el acuerdo de venta a plazos referenciado.</p>
+    </div>
+</body>
+</html>

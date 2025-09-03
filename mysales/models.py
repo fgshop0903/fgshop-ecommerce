@@ -171,6 +171,12 @@ class InstallmentSale(models.Model):
 
     variant = models.ForeignKey(ProductVariant, on_delete=models.PROTECT, verbose_name="Variante Vendida")
     sale_date = models.DateField(verbose_name="Fecha del Acuerdo")
+    fecha_primer_pago = models.DateField(
+        verbose_name="Fecha de la Primera Cuota",
+        null=True, 
+        blank=True,
+        help_text="Si se deja en blanco, la primera cuota será un mes después de la Fecha del Acuerdo."
+    )
     product_cash_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio Original al Contado")
     initial_payment = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Cuota Inicial")
     interest_rate = models.FloatField(default=0.0, verbose_name="Tasa de Interés (%)")

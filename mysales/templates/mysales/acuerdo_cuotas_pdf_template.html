@@ -1,0 +1,150 @@
+{# mysales/templates/mysales/acuerdo_cuotas_pdf_template.html #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Acuerdo de Venta a Plazos - {{ sale.id }}</title>
+    <style>
+        @page { 
+            size: a4 portrait; 
+            margin: 1.2cm; 
+        }
+        body { font-family: "Helvetica", sans-serif; font-size: 10px; color: #333; }
+
+        .header .logo-container { text-align: center; padding-bottom: 5px; }
+        .header .logo-container img { width: 150pt; height: auto; }
+        .header p { text-align: center; margin-top: -5px; font-size: 9px; }
+
+        .document-title { font-size: 16px; text-align: center; background-color: #f2f2f2; padding: 6px; margin-bottom: 20px; }
+        .info-section { margin-bottom: 15px; line-height: 1.5; }
+        
+        .terms-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            border: 1px solid #333; 
+            page-break-inside: avoid; 
+        }
+        .terms-table th, .terms-table td { 
+            border: 1px solid #ccc; 
+            padding: 6px;
+        }
+        .terms-table th { background-color: #f2f2f2; width: 50%; text-align: left;}
+        .terms-table .total-row { font-weight: bold; background-color: #e9e9e9; }
+        .product-section { margin-top: 20px; }
+        
+        .signature-section { 
+            margin-top: 80px;
+            page-break-inside: avoid;
+        }
+
+        .footer { text-align: center; font-size: 9px; color: #888; position: fixed; bottom: -30px; left: 0px; right: 0px;}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            {% if logo_path %}<img src="{{ logo_path }}">{% else %}<h1 style="font-size: 24px;">FGSHOP</h1>{% endif %}
+        </div>
+        <p>Email: fgshop0903@gmail.com | Celular: +51 938 709 302</p>
+    </div>
+
+    <h2 class="document-title">ACUERDO DE VENTA A PLAZOS</h2>
+
+    <div class="info-section">
+        <strong>Nº de Acuerdo:</strong> INST-{{ sale.id }}<br>
+        <strong>Fecha del Acuerdo:</strong> {{ sale.sale_date|date:"d/m/Y" }}
+    </div>
+
+    <div class="info-section">
+        <strong>Cliente:</strong> {{ sale.customer_name }}<br>
+        <strong>DNI:</strong> {{ sale.customer_dni }}<br>
+        <strong>Teléfono:</strong> {{ sale.customer_phone|default:"No especificado" }}
+    </div>
+
+    <div class="product-section">
+        <p>Mediante el presente documento, se acuerda la venta del siguiente producto bajo los términos especificados a continuación:</p>
+        <p><strong>Producto:</strong> {{ sale.variant }}</p>
+    </div>
+
+    <table class="terms-table">
+        <thead>
+            <tr>
+                <th colspan="2" style="text-align: center;">RESUMEN Y TÉRMINOS DEL CRÉDITO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Precio Original al Contado</td>
+                <td>S/ {{ sale.product_cash_price|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>Cuota Inicial Pagada</td>
+                <td>S/ {{ sale.initial_payment|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td><strong>Monto a Financiar</strong></td>
+                <td><strong>S/ {{ monto_a_financiar|floatformat:2 }}</strong></td>
+            </tr>
+            <tr>
+                <td>Tasa de Interés Aplicada</td>
+                <td>{{ sale.interest_rate|floatformat:1 }}%</td>
+            </tr>
+            <tr>
+                <td>Número de Cuotas</td>
+                <td>{{ sale.number_of_installments }}</td>
+            </tr>
+            <tr>
+                <td>Monto de cada Cuota</td>
+                <td>S/ {{ sale.installment_amount|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td>PRECIO TOTAL A CRÉDITO</td>
+                <td>S/ {{ sale.total_credit_price|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+        <div class="schedule-section" style="margin-top: 20px;">
+        <h3 style="font-size: 12px; text-align: center; background-color: #f2f2f2; padding: 6px;">CRONOGRAMA DE PAGOS</h3>
+        <table class="terms-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">N° Cuota</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th style="text-align: right;">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuota in cronograma %}
+                <tr>
+                    <td>{{ cuota.numero }}</td>
+                    <td>{{ cuota.fecha_pago|date:"d/m/Y" }}</td>
+                    <td style="text-align: right;">S/ {{ cuota.monto|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="signature-section">
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 45%; text-align: center;">
+                    <hr style="width: 80%; border: 0; border-top: 1px solid #333;">
+                    <p>Firma del Cliente (Conformidad)</p>
+                </td>
+                <td style="width: 10%;"></td>
+                <td style="width: 45%; text-align: center;">
+                    <hr style="width: 80%; border: 0; border-top: 1px solid #333;">
+                    <p>FGSHOP</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p>El cliente declara haber leído y aceptado los términos y condiciones de la venta a plazos. Este documento sirve como constancia del acuerdo.</p>
+    </div>
+</body>
+</html>

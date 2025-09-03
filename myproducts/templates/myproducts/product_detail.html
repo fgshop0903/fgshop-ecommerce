@@ -10,7 +10,7 @@
 
 
 {% block content %}
-<div class="container my-4">
+<div class="container my-4 mb-5"> {# ¡CLASE mb-5 AÑADIDA AQUÍ para el margen inferior! #}
     <!-- Breadcrumbs (visible en todas las pantallas) -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -122,11 +122,9 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div> {# Cierre del row principal con las columnas #} 
 
-    </div> 
-
-    <hr class="my-5">
+    <hr class="my-5"> {# Esta línea divisoria se mantiene aquí #}
 
     <!-- Sección de Descripción y Ficha Técnica (Vista Escritorio) -->
     <div class="d-none d-md-block">
@@ -196,7 +194,7 @@
         </div>
     </div>
    
-</div>
+</div> {# Cierre del container my-4 mb-5 que envuelve todo el contenido #}
 
 <!-- Modal para la Guía de Tallas -->
 {% if product.categoria and product.categoria.guia_tallas_pdf %}

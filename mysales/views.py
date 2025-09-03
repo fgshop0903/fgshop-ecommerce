@@ -3,7 +3,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
-from .models import Order, OrderItem
+from .models import Order, OrderItem, InstallmentSale, InstallmentPayment
 from django.http import JsonResponse
 from myproducts.models import ProductVariant
 from django.http import HttpResponse
@@ -12,6 +12,7 @@ from xhtml2pdf import pisa
 from decimal import Decimal
 from django.contrib.staticfiles.finders import find
 from io import BytesIO  
+from dateutil.relativedelta import relativedelta
 # from .forms import CheckoutForm # Si implementas el checkout aquí
 # from cart.cart import Cart # Asumiendo que tienes una app 'cart'
 
@@ -159,6 +160,128 @@ def generar_nota_venta_pdf(request, order_id):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="nota-de-venta-{order.id_display}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF <pre>' + html + '</pre>')
+        
+    return response
+
+def generar_orden_pedido_pdf(request, order_id):
+    """
+    Genera un PDF del Pedido para que el cliente lo revise
+    y confirme antes de realizar el pago.
+    """
+    order = get_object_or_404(Order, id=order_id)
+
+    # Puede ser generado por el staff o por el propio cliente
+    if not request.user.is_staff and order.user != request.user:
+        return HttpResponse("Acceso no autorizado", status=403)
+
+    logo_path = find('core/img/logo_fgshop.png')
+
+    context = {
+        'order': order,
+        'logo_path': logo_path,
+    }
+    
+    # ¡CAMBIO CLAVE! Usamos la nueva plantilla 'orden_pedido_pdf_template.html'
+    template_path = 'mysales/orden_pedido_pdf_template.html'
+    html = get_template(template_path).render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    # ¡CAMBIO CLAVE! El nombre del archivo ahora es más claro
+    response['Content-Disposition'] = f'attachment; filename="pedido-fgshop-{order.id_display}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF <pre>' + html + '</pre>')
+        
+    return response
+
+def generar_acuerdo_cuotas_pdf(request, sale_id):
+    sale = get_object_or_404(InstallmentSale, id=sale_id)
+    if not request.user.is_staff:
+        return HttpResponse("Acceso no autorizado", status=403)
+
+    logo_path = find('core/img/logo_fgshop.png')
+    monto_a_financiar = sale.product_cash_price - sale.initial_payment
+
+    # --- INICIO DE LA NUEVA LÓGICA DEL CRONOGRAMA ---
+    cronograma = []
+    # 1. Determinamos la fecha de inicio del cronograma
+    if sale.fecha_primer_pago:
+        fecha_actual = sale.fecha_primer_pago
+    else:
+        # Si no hay fecha de primer pago, es un mes después del acuerdo
+        fecha_actual = sale.sale_date + relativedelta(months=1)
+
+    # 2. Generamos la lista de cuotas con sus fechas
+    for i in range(1, sale.number_of_installments + 1):
+        cronograma.append({
+            'numero': i,
+            'fecha_pago': fecha_actual,
+            'monto': sale.installment_amount
+        })
+        # Añadimos un mes para la siguiente cuota
+        fecha_actual += relativedelta(months=1)
+    # --- FIN DE LA NUEVA LÓGICA ---
+
+    context = {
+        'sale': sale,
+        'logo_path': logo_path,
+        'monto_a_financiar': monto_a_financiar,
+        'cronograma': cronograma,
+    }
+    
+    template_path = 'mysales/acuerdo_cuotas_pdf_template.html'
+    html = get_template(template_path).render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="acuerdo-cuotas-{sale.id}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF <pre>' + html + '</pre>')
+        
+    return response
+
+def generar_recibo_cuota_pdf(request, payment_id):
+    payment = get_object_or_404(InstallmentPayment, id=payment_id)
+    if not request.user.is_staff:
+        return HttpResponse("Acceso no autorizado", status=403)
+
+    logo_path = find('core/img/logo_fgshop.png')
+
+    # --- INICIO DE LA NUEVA LÓGICA DEL N° DE CUOTA ---
+    sale = payment.installment_sale
+    # Obtenemos todos los pagos de esta venta, ordenados por fecha
+    all_payments = list(sale.payments.all().order_by('payment_date'))
+    
+    try:
+        # Encontramos la posición (índice) de nuestro pago en la lista
+        payment_index = all_payments.index(payment)
+        # El número de cuota es el índice + 1
+        numero_cuota = payment_index + 1
+    except ValueError:
+        # Esto no debería pasar, pero es una precaución
+        numero_cuota = 'N/A'
+    
+    total_cuotas = sale.number_of_installments
+    # --- FIN DE LA NUEVA LÓGICA ---
+
+    context = {
+        'payment': payment,
+        'logo_path': logo_path,
+        'numero_cuota': numero_cuota, # <-- Pasamos el número a la plantilla
+        'total_cuotas': total_cuotas, # <-- Y el total de cuotas
+    }
+    
+    template_path = 'mysales/recibo_pago_cuota_pdf_template.html'
+    html = get_template(template_path).render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="recibo-cuota-{payment.id}.pdf"'
     
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:

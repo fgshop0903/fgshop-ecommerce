@@ -1,0 +1,105 @@
+{# mysales/templates/mysales/nota_venta_pdf_template.html #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nota de Venta - {{ order.id_display }}</title>
+    <style>
+        /* Estos son estilos básicos. Puedes copiarlos de tu otro template si quieres. */
+        @page { size: a4 portrait; margin: 1.5cm; }
+
+        .logo-container {
+            text-align: center; /* Centra el contenido del div */
+            padding-bottom: 10px;
+        }
+        .logo-container img {
+            /* Le damos un ancho fijo en "puntos" (medida de imprenta) */
+            width: 180pt; 
+            height: auto; /* La altura se ajusta sola para no deformar */
+        }
+
+        body { font-family: "Helvetica", sans-serif; font-size: 11px; color: #333; }
+        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .company-name { font-size: 24px; font-weight: bold; }
+        .document-title { font-size: 18px; text-align: center; margin: 20px 0; background-color: #f2f2f2; padding: 5px;}
+        .info-section { margin-top: 20px; line-height: 1.5; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .items-table th { background-color: #f2f2f2; }
+        .items-table .text-right { text-align: right; }
+        .totals-section { float: right; width: 40%; margin-top: 20px; }
+        .footer { position: fixed; bottom: -30px; left: 0px; right: 0px; text-align: center; font-size: 10px; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <!-- Ahora el div tiene una 'clase' en lugar de un 'estilo' -->
+        <div class="logo-container">
+            {% if logo_path %}
+                <!-- La imagen ya no necesita el estilo aquí -->
+                <img src="{{ logo_path }}" alt="Logo FGSHOP">
+            {% else %}
+                <h1 style="font-size: 24px; font-weight: bold;">FGSHOP</h1>
+            {% endif %}
+        </div>
+        
+        <p>Email: fgshop0903@gmail.com | Celular: +51 938 709 302</p>
+    </div>
+
+    <h2 class="document-title">ORDEN DE COMPRA</h2>
+
+    <div class="info-section">
+        <strong>Nº de Pedido:</strong> {{ order.id_display }}<br>
+        <strong>Fecha de Emisión:</strong> {{ order.fecha_pedido|date:"d/m/Y" }}
+    </div>
+
+    <div class="info-section">
+        <strong>Cliente:</strong> {{ order.nombre_cliente|default:"(No especificado)" }}<br>
+        <strong>DNI:</strong> {{ order.dni_cliente|default:"(No especificado)" }}<br>
+        <strong>Dirección de Entrega:</strong> {{ order.direccion_envio }}, {{ order.ciudad_envio }}
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Cant.</th>
+                <th>Descripción</th>
+                <th class="text-right">P. Unitario</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.nombre_producto }}</td>
+                <td class="text-right">S/ {{ item.precio_unitario_variante|floatformat:2 }}</td>
+                <td class="text-right">S/ {{ item.get_costo_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals-section">
+        <tr>
+            <td><strong>Subtotal:</strong></td>
+            <td class="text-right">S/ {{ order.subtotal|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td><strong>Costo de Envío:</strong></td>
+            <td class="text-right">S/ {{ order.costo_envio|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td><strong>TOTAL A PAGAR:</strong></td>
+            <td class="text-right"><strong>S/ {{ order.total_pedido|floatformat:2 }}</strong></td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p>Por favor, revisa que los detalles de tu pedido sean correctos.</p>
+        <p>Para confirmar y proceder con el pago, contáctanos a través de nuestros canales de atención.</p>
+    </div>
+
+</body>
+</html>
