@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'mydeliveries.apps.MydeliveriesConfig',
     'mycart.apps.MycartConfig',
     'mypurchases.apps.MypurchasesConfig',
+    'myquotes.apps.MyquotesConfig',
 
     # Apps de Allauth
     'allauth',

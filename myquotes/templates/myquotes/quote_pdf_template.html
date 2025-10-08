@@ -1,0 +1,129 @@
+{# myquotes/templates/myquotes/quote_pdf_template.html #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cotización {{ quote.numero_cotizacion }}</title>
+    <style>
+        @page { size: a4 portrait; margin: 1.5cm; }
+        body { font-family: "Helvetica", sans-serif; font-size: 10px; color: #333; }
+        .header-container { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .logo-container { float: left; width: 40%; }
+        .logo-container img {
+            width: 100pt !important; 
+            height: auto !important;
+        }
+
+        .company-info { float: right; width: 55%; text-align: right; }
+        .company-info h2 { margin: 0; font-size: 20px; }
+        .clearfix { clear: both; }
+        .quote-title-box { text-align: right; margin-bottom: 20px; }
+        .quote-title-box h1 { font-size: 24px; background-color: #f2f2f2; padding: 10px; margin: 0; display: inline-block;}
+        .customer-info-box { border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; line-height: 1.5; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .items-table th { background-color: #f2f2f2; font-weight: bold; }
+        .items-table .text-right { text-align: right; }
+        .totals-section { float: right; width: 40%; margin-top: 20px; }
+        .totals-table td { padding: 5px; }
+        .terms-section { margin-top: 40px; font-size: 9px; page-break-inside: avoid; }
+        .footer { text-align: center; font-size: 9px; color: #888; position: fixed; bottom: -30px; left: 0px; right: 0px;}
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="logo-container">
+            {% if logo_path %}<img src="{{ logo_path }}">{% endif %}
+        </div>
+        <div class="company-info">
+            <h3>FG SHOP</h3>
+            <p>
+                RUC: 10712211917<br>
+                Psje. Santa victoria N°142<br>
+                Email: fgshop0903@gmail.com | Cel: +51 938 709 302
+            </p>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="quote-title-box">
+        <h2>COTIZACIÓN</h2>
+        <p>
+            <strong>Nº:</strong> {{ quote.numero_cotizacion }}<br>
+            <strong>Fecha:</strong> {{ quote.fecha_emision|date:"d/m/Y" }}<br>
+            <strong>Válida hasta:</strong> {{ quote.fecha_validez|date:"d/m/Y" }}
+        </p>
+    </div>
+
+    <div class="customer-info-box">
+        <strong>Señores:</strong> {{ quote.razon_social }}<br>
+        <strong>RUC:</strong> {{ quote.ruc }}<br>
+        {% if quote.direccion_cliente %}
+        <strong>Dirección:</strong> {{ quote.direccion_cliente|linebreaksbr }}<br>
+        {% endif %}
+        {% if quote.atencion_a %}<strong>Atención:</strong> {{ quote.atencion_a }}{% endif %}
+    </div>
+
+    <p>A solicitud de ustedes, presentamos nuestra cotización por los siguientes productos:</p>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">Cant.</th>
+                <th>Descripción</th>
+                <th class="text-right" style="width: 20%;">P. Unitario (Sin IGV)</th>
+                <th class="text-right" style="width: 20%;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in quote.items.all %}
+            <tr>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.descripcion }}</td>
+                <td class="text-right">S/ {{ item.precio_unitario|floatformat:2 }}</td>
+                <td class="text-right">S/ {{ item.get_subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals-section">
+        <tr>
+            <td><strong>Subtotal:</strong></td>
+            <td class="text-right">S/ {{ quote.subtotal|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td><strong>IGV (18%):</strong></td>
+            <td class="text-right">S/ {{ quote.igv|floatformat:2 }}</td>
+        </tr>
+        <tr style="font-weight: bold; font-size: 1.2em;">
+            <td><strong>TOTAL A PAGAR:</strong></td>
+            <td class="text-right"><strong>S/ {{ quote.total|floatformat:2 }}</strong></td>
+        </tr>
+    </table>
+    <div class="clearfix"></div>
+
+    <div class="terms-section">
+        {% if quote.observaciones %}
+            <strong>Observaciones:</strong>
+            <p style="white-space: pre-wrap;">{{ quote.observaciones }}</p>
+        {% endif %}
+
+        <strong>Términos y Condiciones:</strong>
+        <p style="white-space: pre-wrap;">{{ quote.terminos_y_condiciones }}</p>
+
+        <strong>Datos Bancarios:</strong>
+        <p>
+            Banco BCP: 24571246396081<br>
+            Cuenta interbancaria: 00224517124639608194<br>
+            Yape: 964884971
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>Gracias por su preferencia.</p>
+    </div>
+
+</body>
+</html>
