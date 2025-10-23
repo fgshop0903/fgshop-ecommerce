@@ -22,10 +22,11 @@ DEBUG_FROM_ENV = os.environ.get('DEBUG') == 'True'
 
 DEBUG = IS_DEVELOPMENT or DEBUG_FROM_ENV
 
-# Hosts permitidos. Se configurará automáticamente con la URL de Render.
+# Hosts permitidos.
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'fgshop-ecommerce.onrender.com',
+    'fgshop.duckdns.org',
+    # Puedes añadir www si quieres que también funcione
+    'www.fgshop.duckdns.org',
 ]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -109,14 +110,29 @@ WSGI_APPLICATION = 'mystore.wsgi.application'
 # BASE DE DATOS
 # ==============================================================================
 
-DATABASES = {
-    'default': dj_database_url.config(
-        # Leerá la URL de la base de datos de Render desde la variable de entorno.
-        # Si no la encuentra, usará tu SQLite local para desarrollo.
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600  # Mantiene las conexiones abiertas por 600 segundos
-    )
-}
+# Si estamos en desarrollo (local, sin Docker), usará SQLite.
+# Si estamos en producción (con Docker), construirá la URL de la base de datos
+# a partir de las variables de entorno que le pasaremos.
+if 'DB_HOST' in os.environ:
+    # Configuración para producción con Docker y MariaDB/MySQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': '3306',
+        }
+    }
+else:
+    # Configuración para desarrollo local
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ==============================================================================
 # ARCHIVOS ESTÁTICOS (CSS, JS) Y MEDIA (IMÁGENES SUBIDAS)
