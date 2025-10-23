@@ -225,14 +225,13 @@ class Cart:
             mensaje_items.append(linea)
         
         total = self.get_total_price()
-        
-        mensaje_final = (
-            "¡Hola FG Shop! 👋\n\n"
-            "Quisiera confirmar mi pedido:\n\n"
-            f"{'\n'.join(mensaje_items)}\n\n"
-            f"*Total: S/ {total:.2f}*\n\n"
-            "¡Quedo a la espera de las instrucciones para el pago!"
-        )
+
+        # Construir el mensaje final paso a paso para evitar errores de f-string
+        mensaje_final = "¡Hola FG Shop! 👋\n\n"
+        mensaje_final += "Quisiera confirmar mi pedido:\n\n"
+        mensaje_final += '\n'.join(mensaje_items)
+        mensaje_final += f"\n\n*Total: S/ {total:.2f}*\n\n"
+        mensaje_final += "¡Quedo a la espera de las instrucciones para el pago!"
         
         mensaje_codificado = urllib.parse.quote(mensaje_final)
         
