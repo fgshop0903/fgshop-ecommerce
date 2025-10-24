@@ -27,6 +27,7 @@ ALLOWED_HOSTS = [
     'fgshop.duckdns.org',
     # Puedes añadir www si quieres que también funcione
     'www.fgshop.duckdns.org',
+    'predict-wealth-major-coated.trycloudflare.com',
 ]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
