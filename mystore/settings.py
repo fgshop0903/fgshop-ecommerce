@@ -24,10 +24,8 @@ DEBUG = IS_DEVELOPMENT or DEBUG_FROM_ENV
 
 # Hosts permitidos.
 ALLOWED_HOSTS = [
-    'fgshop.duckdns.org',
-    # Puedes añadir www si quieres que también funcione
-    'www.fgshop.duckdns.org',
-    '.trycloudflare.com',
+    'www.fg-shop-network.com',  # Para que funcione con "www"
+    'fg-shop-network.com',    # Para que funcione sin "www"
 ]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
